@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinScore — Dashboard</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="../css/variables.css" />
+  <link rel="stylesheet" href="../css/style.css" />
+
+  <script>
+    (function () {
+      const salvo = localStorage.getItem('fs-theme') || 'system';
+      const escuro = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-theme', salvo === 'system' ? (escuro ? 'dark' : 'light') : salvo);
+    })();
+  </script>
+</head>
+<body>
+  <div id="sidebar-root"></div>
+  <div id="navbar-root" class="lg:pl-[var(--fs-sidebar-w)]"></div>
+
+  <main class="lg:pl-[var(--fs-sidebar-w)] p-5 lg:p-8" style="max-width:1400px; margin:0 auto;">
+    <div class="fs-animate-in" style="margin-bottom:24px;">
+      <h1 class="fs-display" style="font-size:1.6rem; font-weight:700;">Olá, <span id="fs-nome-usuario">—</span> 👋</h1>
+      <p style="color:var(--fs-text-muted); font-size:0.9rem; margin-top:4px;">
+        Aqui está o resumo do seu mês. Os dados aparecerão assim que você começar a registrar gastos.
+      </p>
+    </div>
+
+    <!-- KPIs -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" style="margin-bottom:24px;">
+      <div class="fs-surface fs-animate-in" style="padding:20px;">
+        <p style="font-size:0.78rem; color:var(--fs-text-muted); margin-bottom:6px;">Total gasto no mês</p>
+        <p class="fs-mono" style="font-size:1.5rem; font-weight:700;">R$ 0,00</p>
+      </div>
+      <div class="fs-surface fs-animate-in" style="padding:20px;">
+        <p style="font-size:0.78rem; color:var(--fs-text-muted); margin-bottom:6px;">Meta mensal</p>
+        <p class="fs-mono" style="font-size:1.5rem; font-weight:700;">—</p>
+      </div>
+      <div class="fs-surface fs-animate-in" style="padding:20px;">
+        <p style="font-size:0.78rem; color:var(--fs-text-muted); margin-bottom:6px;">Restante do mês</p>
+        <p class="fs-mono" style="font-size:1.5rem; font-weight:700;">—</p>
+      </div>
+      <div class="fs-surface fs-animate-in" style="padding:20px;">
+        <p style="font-size:0.78rem; color:var(--fs-text-muted); margin-bottom:6px;">Economia realizada</p>
+        <p class="fs-mono" style="font-size:1.5rem; font-weight:700;">R$ 0,00</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <!-- Score Financeiro -->
+      <div class="fs-surface fs-animate-in" style="padding:24px; display:flex; flex-direction:column; align-items:center; text-align:center;">
+        <p style="font-size:0.85rem; font-weight:600; margin-bottom:18px; align-self:flex-start;">Score Financeiro</p>
+        <div id="fs-dashboard-score-ring" class="fs-score-ring" style="--value:0; width:140px; height:140px;">
+          <span class="fs-score-ring__value" style="font-size:1.8rem;">—</span>
+        </div>
+        <p id="fs-score-descricao" style="font-size:0.8rem; color:var(--fs-text-muted); margin-top:14px;">
+          Registre seus primeiros gastos para calcularmos seu Score.
+        </p>
+      </div>
+
+      <!-- Gráfico: gastos por categoria (placeholder) -->
+      <div class="fs-surface fs-animate-in lg:col-span-2" style="padding:24px;">
+        <p style="font-size:0.85rem; font-weight:600; margin-bottom:16px;">Gastos por categoria</p>
+        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:220px; gap:10px;">
+          <div class="fs-empty-icon"><i data-lucide="pie-chart" class="w-6 h-6"></i></div>
+          <p style="font-size:0.85rem; color:var(--fs-text-muted); text-align:center; max-width:260px;">
+            Assim que você cadastrar gastos, este gráfico mostrará a distribuição por categoria.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gastos recentes -->
+    <div class="fs-surface fs-animate-in" style="padding:24px; margin-top:20px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+        <p style="font-size:0.85rem; font-weight:600;">Gastos recentes</p>
+        <a href="expenses.html" style="font-size:0.8rem; color:var(--fs-indigo); font-weight:500;">Ver todos</a>
+      </div>
+      <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px 0; gap:10px;">
+        <div class="fs-empty-icon"><i data-lucide="receipt" class="w-6 h-6"></i></div>
+        <p style="font-size:0.85rem; color:var(--fs-text-muted);">Nenhum gasto registrado ainda.</p>
+        <a href="expenses.html" class="fs-btn fs-btn-primary" style="margin-top:6px;">
+          <i data-lucide="plus" class="w-4 h-4"></i> Registrar primeiro gasto
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { iniciarPagina } from '../js/app.js';
+
+    iniciarPagina('dashboard', (user) => {
+      document.getElementById('fs-nome-usuario').textContent =
+        (user.displayName || user.email || '').split(' ')[0];
+
+      if (window.lucide) window.lucide.createIcons();
+      // O cálculo real do Score e dos KPIs será conectado nas etapas
+      // "Sistema de Metas" e "Score Financeiro" do plano de entrega.
+    });
+  </script>
+</body>
+</html>
