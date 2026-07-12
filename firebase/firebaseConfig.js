@@ -22,10 +22,11 @@
  */
 
 export const firebaseConfig = {
-  apiKey: "SUA_API_KEY_AQUI",
-  authDomain: "seu-projeto.firebaseapp.com",
-  projectId: "seu-projeto",
-  storageBucket: "seu-projeto.appspot.com",
-  messagingSenderId: "SEU_MESSAGING_SENDER_ID",
-  appId: "SEU_APP_ID",
+  apiKey: "AIzaSyCsGk7r4OilfhOo1aUtpx1Sk11SpdvhJFg",
+  authDomain: "finscore-d677d.firebaseapp.com",
+  projectId: "finscore-d677d",
+  storageBucket: "finscore-d677d.firebasestorage.app",
+  messagingSenderId: "1091598901235",
+  appId: "1:1091598901235:web:460099d8bb6b6dfd67fc86",
+  measurementId: "G-KH0E4NCG5K"
 };
