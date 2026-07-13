@@ -21,7 +21,6 @@ import {
 import { showToast } from "../../components/toast.js";
 import { comLoader } from "../../components/loader.js";
 import { qs } from "./utils.js";
-
 /**
  * Protege páginas internas: redireciona para o login se não
  * houver usuário autenticado. Chame no topo do script de cada
@@ -38,7 +37,6 @@ export function exigirAutenticacao(aoAutenticar) {
     aoAutenticar(user);
   });
 }
-
 /**
  * Inicializa a página de login/cadastro (index.html). Deve ser
  * chamada apenas nessa página.
@@ -48,9 +46,7 @@ export function inicializarPaginaDeLogin() {
   observarAuth((user) => {
     if (user) window.location.href = "pages/dashboard.html";
   });
-
   let modoCadastro = false;
-
   const form = qs("#fs-auth-form");
   const nomeWrapper = qs("#fs-campo-nome");
   const tituloForm = qs("#fs-auth-titulo");
@@ -59,7 +55,6 @@ export function inicializarPaginaDeLogin() {
   const linkAlternar = qs("#fs-auth-alternar");
   const linkEsqueciSenha = qs("#fs-esqueci-senha");
   const botaoGoogle = qs("#fs-btn-google");
-
   function atualizarModo() {
     nomeWrapper.style.display = modoCadastro ? "block" : "none";
     tituloForm.textContent = modoCadastro ? "Crie sua conta" : "Bem-vindo de volta";
@@ -71,13 +66,11 @@ export function inicializarPaginaDeLogin() {
       ? "Já tem uma conta? Entrar"
       : "Ainda não tem conta? Cadastre-se";
   }
-
   linkAlternar?.addEventListener("click", (e) => {
     e.preventDefault();
     modoCadastro = !modoCadastro;
     atualizarModo();
   });
-
   linkEsqueciSenha?.addEventListener("click", async (e) => {
     e.preventDefault();
     const email = qs("#fs-input-email")?.value?.trim();
@@ -92,7 +85,6 @@ export function inicializarPaginaDeLogin() {
       showToast(mensagemDeErroAuth(err.code), "error");
     }
   });
-
   botaoGoogle?.addEventListener("click", async () => {
     try {
       await comLoader(loginComGoogle());
@@ -103,13 +95,11 @@ export function inicializarPaginaDeLogin() {
       }
     }
   });
-
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const nome = qs("#fs-input-nome")?.value?.trim();
     const email = qs("#fs-input-email")?.value?.trim();
     const senha = qs("#fs-input-senha")?.value;
-
     try {
       if (modoCadastro) {
         await comLoader(cadastrarComEmailSenha(nome, email, senha));
@@ -122,6 +112,8 @@ export function inicializarPaginaDeLogin() {
       showToast(mensagemDeErroAuth(err.code), "error");
     }
   });
+  atualizarModo();
+}
 
   atualizarModo();
 }
