@@ -72,24 +72,32 @@ export function renderSidebar(paginaAtiva) {
     "></div>
   `;
 
+  // Renderiza os ícones internos do componente imediatamente
   if (window.lucide) window.lucide.createIcons();
 
   const sidebar = document.getElementById("fs-sidebar");
   const overlay = document.getElementById("fs-sidebar-overlay");
 
-  // No mobile, a sidebar inicia fora da tela; o navbar tem o botão de menu
-  // que adiciona/remove a classe 'fs-sidebar-open'.
+  if (!sidebar || !overlay) return;
+
   function aplicarEstadoMobile() {
     const isMobile = window.innerWidth < 1024;
+    const aberto = document.body.classList.contains("fs-sidebar-open");
+
     if (isMobile) {
-      sidebar.style.transform = document.body.classList.contains("fs-sidebar-open")
-        ? "translateX(0)"
-        : "translateX(-100%)";
-      overlay.style.display = document.body.classList.contains("fs-sidebar-open") ? "block" : "none";
-      overlay.style.opacity = document.body.classList.contains("fs-sidebar-open") ? "1" : "0";
+      sidebar.style.transform = aberto ? "translateX(0)" : "translateX(-100%)";
+      overlay.style.display = aberto ? "block" : "none";
+      
+      // Pequeno micro-delay para permitir que a transição CSS de opacidade ocorra
+      setTimeout(() => {
+        overlay.style.opacity = aberto ? "1" : "0";
+      }, 10);
     } else {
+      // No Desktop garante que ela fique sempre visível e limpa estados residuais do mobile
       sidebar.style.transform = "translateX(0)";
       overlay.style.display = "none";
+      overlay.style.opacity = "0";
+      document.body.classList.remove("fs-sidebar-open");
     }
   }
 
@@ -99,7 +107,9 @@ export function renderSidebar(paginaAtiva) {
   });
 
   window.addEventListener("resize", aplicarEstadoMobile);
-  aplicarEstadoMobile();
+  
+  // Executa após estabilização do DOM para evitar problemas de largura no primeiro load
+  setTimeout(aplicarEstadoMobile, 50);
 
   return { aplicarEstadoMobile };
 }
@@ -110,9 +120,15 @@ export function alternarSidebarMobile() {
   const sidebar = document.getElementById("fs-sidebar");
   const overlay = document.getElementById("fs-sidebar-overlay");
   const aberto = document.body.classList.contains("fs-sidebar-open");
+  
   if (sidebar) sidebar.style.transform = aberto ? "translateX(0)" : "translateX(-100%)";
   if (overlay) {
-    overlay.style.display = aberto ? "block" : "none";
-    overlay.style.opacity = aberto ? "1" : "0";
+    if (aberto) {
+      overlay.style.display = "block";
+      setTimeout(() => { overlay.style.opacity = "1"; }, 10);
+    } else {
+      overlay.style.opacity = "0";
+      setTimeout(() => { overlay.style.display = "none"; }, 200); // tempo casado com a transição base
+    }
   }
 }
