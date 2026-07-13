@@ -29,7 +29,7 @@ import {
 /**
  * Protege páginas internas: redireciona para o login se não
  * houver usuário autenticado.
- * @param {(user: import('firebase/auth').User) => void} aoAutenticar
+ * @param {(user: import('firebase/auth').User, usuarioDoc: any) => void} aoAutenticar
  */
 export function exigirAutenticacao(aoAutenticar) {
   observarAuth(async (user) => {
@@ -120,29 +120,31 @@ export function inicializarPaginaDeLogin() {
     }
   });
 
-form?.addEventListener("submit", async (e) => {
-  e.preventDefault();
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    // Captura dos valores dos inputs dentro do evento de submit
+    const nome = qs("#fs-input-nome")?.value?.trim();
+    const email = qs("#fs-input-email")?.value?.trim();
+    const senha = qs("#fs-input-senha")?.value;
 
     try {
       if (modoCadastro) {
+        if (!nome) {
+          showToast("Por favor, preencha seu nome.", "warning");
+          return;
+        }
         await comLoader(cadastrarComEmailSenha(nome, email, senha));
         showToast("Conta criada com sucesso!", "success");
       } else {
         await comLoader(loginComEmailSenha(email, senha));
       }
-      // O redirecionamento acontece automaticamente pelo observarAuth no topo
+      // O redirecionamento acontece automaticamente pelo observarAuth configurado no início desta função
     } catch (err) {
       showToast(mensagemDeErroAuth(err.code), "error");
     }
+  });
 
-    window.location.href = "pages/dashboard.html";
-  } catch (err) {
-    showToast(mensagemDeErroAuth(err.code), "error");
-  }
-});
-
-// Inicializa o modo da tela
-atualizarModo();
-
+  // Inicializa o modo da tela
+  atualizarModo();
 }
-
