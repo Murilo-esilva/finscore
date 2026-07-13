@@ -65,8 +65,17 @@ export function salvarDocumento(colecao, id, dados, merge = true) {
 }
 
 /** Atualiza campos específicos de um documento existente. */
-export function atualizarDocumento(colecao, id, dados) {
-  return updateDoc(doc(db, colecao, id), dados);
+export async function atualizarDocumento(colecao, id, dados) {
+  try {
+    const docRef = doc(db, colecao, id);
+    // O pulo do gato: setDoc com { merge: true } 
+    // Atualiza o que existe e cria o documento caso ele não exista!
+    await setDoc(docRef, dados, { merge: true });
+    return true;
+  } catch (erro) {
+    console.error(`Erro ao atualizar documento na coleção ${colecao}:`, erro);
+    throw erro;
+  }
 }
 
 /** Remove um documento. */
