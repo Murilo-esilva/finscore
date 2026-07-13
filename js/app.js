@@ -33,15 +33,24 @@ if ('serviceWorker' in navigator) {
  */
 export function iniciarPagina(paginaAtiva, aoCarregar) {
   exigirAutenticacao(async (user, usuarioDoc) => {
+    // 1. Injeta os componentes no DOM
     renderSidebar(paginaAtiva);
     renderNavbar({
       nome: user.displayName,
       email: user.email,
       foto: user.photoURL,
     });
+
+    // 2. Garante que os ícones da Sidebar/Navbar sejam criados imediatamente
+    if (window.lucide) {
+      window.lucide.createIcons();
+    }
+
     document.body.classList.add("fs-authenticated");
+
+    // 3. Executa a lógica específica da página (gastos, dashboard, etc)
     if (typeof aoCarregar === "function") {
-      aoCarregar(user, usuarioDoc);
+      await aoCarregar(user, usuarioDoc); // Adicione o 'await' aqui se sua função for async
     }
   });
 }
