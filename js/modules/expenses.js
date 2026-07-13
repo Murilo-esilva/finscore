@@ -15,7 +15,6 @@ import {
   gerarNovoId,
   adicionarAoArray,
 } from "../../services/firestore.js";
-
 export const CATEGORIAS_PADRAO = [
   { id: "alimentacao", nome: "Alimentação", icone: "utensils" },
   { id: "transporte", nome: "Transporte", icone: "car" },
@@ -30,7 +29,6 @@ export const CATEGORIAS_PADRAO = [
   { id: "pets", nome: "Pets", icone: "dog" },
   { id: "outros", nome: "Outros", icone: "more-horizontal" },
 ];
-
 export const FORMAS_PAGAMENTO = [
   "Dinheiro",
   "Cartão de débito",
@@ -40,7 +38,6 @@ export const FORMAS_PAGAMENTO = [
   "Boleto",
   "Outro",
 ];
-
 /**
  * Retorna a lista de categorias disponíveis para o usuário:
  * as padrão do sistema + as personalizadas que ele já criou
@@ -56,12 +53,10 @@ export function categoriasDisponiveis(usuarioDoc) {
   }));
   return [...CATEGORIAS_PADRAO, ...custom];
 }
-
 /** Adiciona uma nova categoria personalizada ao usuário. */
 export function criarCategoriaPersonalizada(uid, nomeCategoria) {
   return adicionarAoArray("users", uid, "categoriasCustom", nomeCategoria.trim());
 }
-
 /**
  * Cria um novo gasto para o usuário.
  * @param {string} uid
@@ -71,7 +66,6 @@ export function criarCategoriaPersonalizada(uid, nomeCategoria) {
 export async function criarGasto(uid, dados) {
   const id = gerarNovoId("expenses");
   const agora = new Date().toISOString();
-
   await salvarDocumento("expenses", id, {
     uid,
     valor: Number(dados.valor) || 0,
@@ -91,10 +85,8 @@ export async function criarGasto(uid, dados) {
     createdAt: agora,
     updatedAt: agora,
   });
-
   return id;
 }
-
 /**
  * Atualiza um gasto existente.
  * @param {string} expenseId
@@ -107,17 +99,14 @@ export function atualizarGasto(expenseId, dados) {
     updatedAt: new Date().toISOString(),
   });
 }
-
 /** Exclui um gasto. */
 export function excluirGasto(expenseId) {
   return excluirDocumento("expenses", expenseId);
 }
-
 /** Busca todos os gastos do usuário (sem filtro/ordenação — feito no cliente). */
 export function listarGastosDoUsuario(uid) {
   return consultarPorUsuario("expenses", uid);
 }
-
 /**
  * Aplica filtros, busca textual, ordenação e paginação sobre uma
  * lista de gastos já carregada em memória.
@@ -131,7 +120,6 @@ export function listarGastosDoUsuario(uid) {
  */
 export function filtrarOrdenarPaginar(gastos, opcoes = {}) {
   let resultado = [...gastos];
-
   if (opcoes.categoria) {
     resultado = resultado.filter((g) => g.categoria === opcoes.categoria);
   }
@@ -152,7 +140,6 @@ export function filtrarOrdenarPaginar(gastos, opcoes = {}) {
         .some((campo) => campo.toLowerCase().includes(termo))
     );
   }
-
   const campo = opcoes.ordenarPor || "dataHora";
   const direcao = opcoes.direcao || "desc";
   resultado.sort((a, b) => {
@@ -160,13 +147,11 @@ export function filtrarOrdenarPaginar(gastos, opcoes = {}) {
     const vb = campo === "valor" ? Number(b.valor) || 0 : new Date(b.dataHora).getTime();
     return direcao === "asc" ? va - vb : vb - va;
   });
-
   const totalItens = resultado.length;
   const porPagina = opcoes.porPagina || 10;
   const pagina = opcoes.pagina || 1;
   const inicio = (pagina - 1) * porPagina;
   const itensDaPagina = resultado.slice(inicio, inicio + porPagina);
-
   return {
     itens: itensDaPagina,
     totalItens,
@@ -174,7 +159,6 @@ export function filtrarOrdenarPaginar(gastos, opcoes = {}) {
     pagina,
   };
 }
-
 /**
  * Captura a localização atual do navegador e resolve o endereço
  * (cidade/estado/país) via geocodificação reversa gratuita e sem
@@ -187,7 +171,6 @@ export function capturarLocalizacaoAtual() {
       reject(new Error("Geolocalização não é suportada neste navegador."));
       return;
     }
-
     navigator.geolocation.getCurrentPosition(
       async (posicao) => {
         const { latitude, longitude } = posicao.coords;
