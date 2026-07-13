@@ -21,6 +21,8 @@ import {
   limit as fsLimit,
   getDocs,
   serverTimestamp,
+  arrayUnion,
+  arrayRemove,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { db } from "../js/modules/firebase.js";
 
@@ -63,8 +65,17 @@ export function salvarDocumento(colecao, id, dados, merge = true) {
 }
 
 /** Atualiza campos específicos de um documento existente. */
-export function atualizarDocumento(colecao, id, dados) {
-  return updateDoc(doc(db, colecao, id), dados);
+export async function atualizarDocumento(colecao, id, dados) {
+  try {
+    const docRef = doc(db, colecao, id);
+    // O pulo do gato: setDoc com { merge: true } 
+    // Atualiza o que existe e cria o documento caso ele não exista!
+    await setDoc(docRef, dados, { merge: true });
+    return true;
+  } catch (erro) {
+    console.error(`Erro ao atualizar documento na coleção ${colecao}:`, erro);
+    throw erro;
+  }
 }
 
 /** Remove um documento. */
@@ -72,20 +83,38 @@ export function excluirDocumento(colecao, id) {
   return deleteDoc(doc(db, colecao, id));
 }
 
+/** Gera um novo ID de documento (sem gravar nada ainda) para uma coleção. */
+export function gerarNovoId(colecao) {
+  return doc(collection(db, colecao)).id;
+}
+
+/** Adiciona um valor a um campo de array de um documento, sem duplicar. */
+export function adicionarAoArray(colecao, id, campo, valor) {
+  return updateDoc(doc(db, colecao, id), { [campo]: arrayUnion(valor) });
+}
+
+/** Remove um valor de um campo de array de um documento. */
+export function removerDoArray(colecao, id, campo, valor) {
+  return updateDoc(doc(db, colecao, id), { [campo]: arrayRemove(valor) });
+}
+
 /**
  * Consulta documentos de uma coleção filtrando sempre por uid
  * (todas as coleções de negócio do FinScore são particionadas
- * por usuário), com ordenação e limite opcionais.
+ * por usuário). Propositalmente NÃO combina `where` com `orderBy`
+ * na query — isso exigiria criar um índice composto no console do
+ * Firebase antes que a consulta funcionasse. Para o volume de uma
+ * conta pessoal, é mais simples trazer os documentos do usuário e
+ * ordenar/filtrar/paginar no cliente (feito em modules/expenses.js).
+ * Se o volume crescer muito, considere criar o índice composto e
+ * voltar a usar `orderByField` aqui.
  * @param {string} colecao
  * @param {string} uid
- * @param {{orderByField?: string, orderDirection?: 'asc'|'desc', limitTo?: number}} opcoes
+ * @param {{limitTo?: number}} opcoes
  */
 export async function consultarPorUsuario(colecao, uid, opcoes = {}) {
   const restricoes = [where("uid", "==", uid)];
 
-  if (opcoes.orderByField) {
-    restricoes.push(orderBy(opcoes.orderByField, opcoes.orderDirection || "desc"));
-  }
   if (opcoes.limitTo) {
     restricoes.push(fsLimit(opcoes.limitTo));
   }

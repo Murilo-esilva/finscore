@@ -4,16 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FinScore — Dashboard</title>
-
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
-
   <link rel="stylesheet" href="../css/variables.css" />
   <link rel="stylesheet" href="../css/style.css" />
-
   <script>
     (function () {
       const salvo = localStorage.getItem('fs-theme') || 'system';
@@ -25,35 +23,32 @@
 <body>
   <div id="sidebar-root"></div>
   <div id="navbar-root" class="lg:pl-[var(--fs-sidebar-w)]"></div>
-
   <main class="lg:pl-[var(--fs-sidebar-w)] p-5 lg:p-8" style="max-width:1400px; margin:0 auto;">
     <div class="fs-animate-in" style="margin-bottom:24px;">
       <h1 class="fs-display" style="font-size:1.6rem; font-weight:700;">Olá, <span id="fs-nome-usuario">—</span> 👋</h1>
       <p style="color:var(--fs-text-muted); font-size:0.9rem; margin-top:4px;">
-        Aqui está o resumo do seu mês. Os dados aparecerão assim que você começar a registrar gastos.
+        Aqui está o resumo do seu mês.
       </p>
     </div>
-
     <!-- KPIs -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" style="margin-bottom:24px;">
       <div class="fs-surface fs-animate-in" style="padding:20px;">
         <p style="font-size:0.78rem; color:var(--fs-text-muted); margin-bottom:6px;">Total gasto no mês</p>
-        <p class="fs-mono" style="font-size:1.5rem; font-weight:700;">R$ 0,00</p>
+        <p id="fs-kpi-total-mes" class="fs-mono" style="font-size:1.5rem; font-weight:700;">R$ 0,00</p>
       </div>
       <div class="fs-surface fs-animate-in" style="padding:20px;">
         <p style="font-size:0.78rem; color:var(--fs-text-muted); margin-bottom:6px;">Meta mensal</p>
-        <p class="fs-mono" style="font-size:1.5rem; font-weight:700;">—</p>
+        <p id="fs-kpi-meta-mensal" class="fs-mono" style="font-size:1.5rem; font-weight:700;">—</p>
       </div>
       <div class="fs-surface fs-animate-in" style="padding:20px;">
         <p style="font-size:0.78rem; color:var(--fs-text-muted); margin-bottom:6px;">Restante do mês</p>
-        <p class="fs-mono" style="font-size:1.5rem; font-weight:700;">—</p>
+        <p id="fs-kpi-restante" class="fs-mono" style="font-size:1.5rem; font-weight:700;">—</p>
       </div>
       <div class="fs-surface fs-animate-in" style="padding:20px;">
-        <p style="font-size:0.78rem; color:var(--fs-text-muted); margin-bottom:6px;">Economia realizada</p>
-        <p class="fs-mono" style="font-size:1.5rem; font-weight:700;">R$ 0,00</p>
+        <p style="font-size:0.78rem; color:var(--fs-text-muted); margin-bottom:6px;">Gastos registrados</p>
+        <p id="fs-kpi-total-registros" class="fs-mono" style="font-size:1.5rem; font-weight:700;">0</p>
       </div>
     </div>
-
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
       <!-- Score Financeiro -->
       <div class="fs-surface fs-animate-in" style="padding:24px; display:flex; flex-direction:column; align-items:center; text-align:center;">
@@ -65,26 +60,85 @@
           Registre seus primeiros gastos para calcularmos seu Score.
         </p>
       </div>
-
-      <!-- Gráfico: gastos por categoria (placeholder) -->
+      <!-- Gráfico: gastos por categoria (Chart.js Pizza) -->
       <div class="fs-surface fs-animate-in lg:col-span-2" style="padding:24px;">
         <p style="font-size:0.85rem; font-weight:600; margin-bottom:16px;">Gastos por categoria</p>
-        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:220px; gap:10px;">
+        <div id="fs-categorias-vazio" style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:300px; gap:10px;">
           <div class="fs-empty-icon"><i data-lucide="pie-chart" class="w-6 h-6"></i></div>
           <p style="font-size:0.85rem; color:var(--fs-text-muted); text-align:center; max-width:260px;">
             Assim que você cadastrar gastos, este gráfico mostrará a distribuição por categoria.
           </p>
         </div>
+        <div id="fs-categorias-grafico" style="display:none; position:relative; height:300px;">
+          <canvas id="fs-chart-pizza"></canvas>
+        </div>
+        <div id="fs-categorias-lista" style="display:none;"></div>
       </div>
     </div>
-
+    <!-- Progresso de Metas (Stage 3) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5" style="margin-top:20px;">
+      <!-- Meta Mensal -->
+      <div class="fs-surface fs-animate-in" style="padding:24px;">
+        <div id="fs-progresso-meta" style="text-align:center; padding:16px;">
+          <p style="font-size:0.85rem; color:var(--fs-text-muted);">Define uma meta mensal nas <a href="settings.html" style="color:var(--fs-indigo); text-decoration:underline;">configurações</a> para acompanhar seu progresso.</p>
+        </div>
+      </div>
+      <!-- Economia -->
+      <div class="fs-surface fs-animate-in" style="padding:24px;">
+        <div id="fs-economia-card" style="text-align:center; padding:16px;">
+          <p style="font-size:0.85rem; color:var(--fs-text-muted);">Defina uma meta de economia nas <a href="settings.html" style="color:var(--fs-indigo); text-decoration:underline;">configurações</a>.</p>
+        </div>
+      </div>
+    </div>
+    <!-- Tendência e Progresso por Categoria -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5" style="margin-top:20px;">
+      <!-- Tendência -->
+      <div class="fs-surface fs-animate-in" style="padding:24px;">
+        <p style="font-size:0.85rem; font-weight:600; margin-bottom:16px;">Comparação</p>
+        <div id="fs-tendencia-card" style="text-align:center; padding:16px;">
+          <p style="font-size:0.8rem; color:var(--fs-text-muted);">Sem dados de mês anterior.</p>
+        </div>
+      </div>
+      <!-- Progresso por Categoria -->
+      <div class="fs-surface fs-animate-in lg:col-span-2" style="padding:24px;">
+        <p style="font-size:0.85rem; font-weight:600; margin-bottom:16px;">Progresso por categoria</p>
+        <div id="fs-progresso-por-categoria" style="text-align:center; padding:16px;">
+          <p style="font-size:0.8rem; color:var(--fs-text-muted);">Define metas por categoria nas <a href="settings.html" style="color:var(--fs-indigo); text-decoration:underline;">configurações</a> para acompanhar.</p>
+        </div>
+      </div>
+    </div>
+    <!-- Gráficos Adicionais (Stage 5) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5" style="margin-top:20px;">
+      <!-- Evolução Diária -->
+      <div class="fs-surface fs-animate-in" style="padding:24px;">
+        <p style="font-size:0.85rem; font-weight:600; margin-bottom:16px;">Evolução diária (30 dias)</p>
+        <div style="position:relative; height:300px;">
+          <canvas id="fs-chart-linha"></canvas>
+        </div>
+      </div>
+      <!-- Gastos por Semana -->
+      <div class="fs-surface fs-animate-in" style="padding:24px;">
+        <p style="font-size:0.85rem; font-weight:600; margin-bottom:16px;">Gastos por semana</p>
+        <div style="position:relative; height:300px;">
+          <canvas id="fs-chart-barras"></canvas>
+        </div>
+      </div>
+    </div>
+    <!-- Evolução Mensal (12 meses) -->
+    <div class="fs-surface fs-animate-in" style="padding:24px; margin-top:20px;">
+      <p style="font-size:0.85rem; font-weight:600; margin-bottom:16px;">Evolução de gastos (últimos 12 meses)</p>
+      <div style="position:relative; height:300px;">
+        <canvas id="fs-chart-area"></canvas>
+      </div>
+    </div>
     <!-- Gastos recentes -->
     <div class="fs-surface fs-animate-in" style="padding:24px; margin-top:20px;">
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
         <p style="font-size:0.85rem; font-weight:600;">Gastos recentes</p>
         <a href="expenses.html" style="font-size:0.8rem; color:var(--fs-indigo); font-weight:500;">Ver todos</a>
       </div>
-      <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px 0; gap:10px;">
+      <div id="fs-recentes-lista"></div>
+      <div id="fs-recentes-vazio" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px 0; gap:10px;">
         <div class="fs-empty-icon"><i data-lucide="receipt" class="w-6 h-6"></i></div>
         <p style="font-size:0.85rem; color:var(--fs-text-muted);">Nenhum gasto registrado ainda.</p>
         <a href="expenses.html" class="fs-btn fs-btn-primary" style="margin-top:6px;">
@@ -93,18 +147,151 @@
       </div>
     </div>
   </main>
-
   <script type="module">
     import { iniciarPagina } from '../js/app.js';
-
-    iniciarPagina('dashboard', (user) => {
+    import { listarGastosDoUsuario, CATEGORIAS_PADRAO } from '../js/modules/expenses.js';
+    import { formatarMoeda, formatarDataHora } from '../js/modules/utils.js';
+    import { inicializarDashboard } from '../js/modules/dashboard.js';
+    import { criarGraficoPizza, criarGraficoLinha, criarGraficoBarras, criarGraficoArea } from '../js/modules/charts.js';
+    let chartsInstances = {};
+    iniciarPagina('dashboard', async (user, usuarioDoc) => {
       document.getElementById('fs-nome-usuario').textContent =
         (user.displayName || user.email || '').split(' ')[0];
-
+      const gastos = await listarGastosDoUsuario(user.uid);
+      renderKpis(gastos);
+      renderCategorias(gastos);
+      renderRecentes(gastos);
+      // Integrar Dashboard com Metas (Stage 3)
+      inicializarDashboard(usuarioDoc, 
+        gastosDoMesAtual(gastos), 
+        gastosDoMesAnterior(gastos),
+        CATEGORIAS_PADRAO
+      );
+      // Inicializar gráficos (Stage 5)
+      setTimeout(() => {
+        const tema = document.documentElement.getAttribute('data-theme') || 'light';
+        
+        // Limpar gráficos anteriores
+        Object.values(chartsInstances).forEach(chart => {
+          if (chart && chart.destroy) chart.destroy();
+        });
+        chartsInstances = {};
+        // Pizza
+        if (gastosDoMesAtual(gastos).length > 0) {
+          chartsInstances.pizza = criarGraficoPizza('fs-chart-pizza', gastosDoMesAtual(gastos), { tema });
+          document.getElementById('fs-categorias-vazio').style.display = 'none';
+          document.getElementById('fs-categorias-grafico').style.display = 'block';
+        }
+        // Linha (últimos 30 dias)
+        if (gastos.length > 0) {
+          chartsInstances.linha = criarGraficoLinha('fs-chart-linha', gastos, { tema });
+        }
+        // Barras (por semana do mês atual)
+        if (gastosDoMesAtual(gastos).length > 0) {
+          chartsInstances.barras = criarGraficoBarras('fs-chart-barras', gastosDoMesAtual(gastos), { tema });
+        }
+        // Área (12 meses)
+        if (gastos.length > 0) {
+          chartsInstances.area = criarGraficoArea('fs-chart-area', gastos, { tema, meses: 12 });
+        }
+      }, 100);
       if (window.lucide) window.lucide.createIcons();
-      // O cálculo real do Score e dos KPIs será conectado nas etapas
-      // "Sistema de Metas" e "Score Financeiro" do plano de entrega.
     });
+    function escapeHTML(str) {
+      if (!str) return '';
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+    function iconeDaCategoria(nomeCategoria) {
+      const cat = CATEGORIAS_PADRAO.find((c) => c.nome === nomeCategoria);
+      return cat?.icone || 'tag';
+    }
+    function gastosDoMesAtual(gastos) {
+      const agora = new Date();
+      return gastos.filter((g) => {
+        const d = new Date(g.dataHora);
+        return d.getMonth() === agora.getMonth() && d.getFullYear() === agora.getFullYear();
+      });
+    }
+    function gastosDoMesAnterior(gastos) {
+      const agora = new Date();
+      const mesAnterior = agora.getMonth() === 0 ? 11 : agora.getMonth() - 1;
+      const anoAnterior = agora.getMonth() === 0 ? agora.getFullYear() - 1 : agora.getFullYear();
+      
+      return gastos.filter((g) => {
+        const d = new Date(g.dataHora);
+        return d.getMonth() === mesAnterior && d.getFullYear() === anoAnterior;
+      });
+    }
+    function renderKpis(gastos) {
+      const doMes = gastosDoMesAtual(gastos);
+      const totalMes = doMes.reduce((soma, g) => soma + (Number(g.valor) || 0), 0);
+      document.getElementById('fs-kpi-total-mes').textContent = formatarMoeda(totalMes);
+      document.getElementById('fs-kpi-total-registros').textContent = String(gastos.length);
+    }
+    function renderCategorias(gastos) {
+      const vazio = document.getElementById('fs-categorias-vazio');
+      const lista = document.getElementById('fs-categorias-lista');
+      if (gastos.length === 0) {
+        vazio.style.display = 'flex';
+        lista.style.display = 'none';
+        return;
+      }
+      const totais = {};
+      gastos.forEach((g) => {
+        totais[g.categoria] = (totais[g.categoria] || 0) + (Number(g.valor) || 0);
+      });
+      const totalGeral = Object.values(totais).reduce((a, b) => a + b, 0) || 1;
+      const ordenado = Object.entries(totais).sort((a, b) => b[1] - a[1]).slice(0, 6);
+      lista.innerHTML = ordenado.map(([categoria, valor]) => {
+        const pct = Math.round((valor / totalGeral) * 100);
+        return `
+          <div style="margin-bottom:12px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; font-size:0.82rem; margin-bottom:5px;">
+              <span style="display:flex; align-items:center; gap:6px;">
+                <i data-lucide="${iconeDaCategoria(categoria)}" class="w-3.5 h-3.5" style="color:var(--fs-text-muted);"></i>
+                ${escapeHTML(categoria)}
+              </span>
+              <span class="fs-mono" style="font-weight:600;">${formatarMoeda(valor)} · ${pct}%</span>
+            </div>
+            <div style="height:6px; border-radius:999px; background:var(--fs-surface-2); overflow:hidden;">
+              <div style="height:100%; width:${pct}%; background:var(--fs-gradient); border-radius:999px;"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      vazio.style.display = 'none';
+      lista.style.display = 'block';
+    }
+    function renderRecentes(gastos) {
+      const listaEl = document.getElementById('fs-recentes-lista');
+      const vazioEl = document.getElementById('fs-recentes-vazio');
+      if (gastos.length === 0) {
+        listaEl.style.display = 'none';
+        vazioEl.style.display = 'flex';
+        return;
+      }
+      const recentes = [...gastos]
+        .sort((a, b) => new Date(b.dataHora) - new Date(a.dataHora))
+        .slice(0, 5);
+      listaEl.innerHTML = recentes.map((g) => `
+        <div style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--fs-border);">
+          <div class="fs-empty-icon" style="width:36px;height:36px;">
+            <i data-lucide="${iconeDaCategoria(g.categoria)}" class="w-4 h-4"></i>
+          </div>
+          <div style="flex:1; min-width:0;">
+            <p style="font-size:0.85rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+              ${escapeHTML(g.descricao) || escapeHTML(g.categoria)}
+            </p>
+            <p style="font-size:0.74rem; color:var(--fs-text-muted);">${formatarDataHora(g.dataHora)}</p>
+          </div>
+          <p class="fs-mono" style="font-weight:700; font-size:0.88rem;">${formatarMoeda(g.valor)}</p>
+        </div>
+      `).join('');
+      listaEl.style.display = 'block';
+      vazioEl.style.display = 'none';
+    }
   </script>
 </body>
 </html>

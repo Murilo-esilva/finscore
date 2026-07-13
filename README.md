@@ -4,7 +4,7 @@ Controle financeiro pessoal com Score Financeiro, metas, gráficos, insights e g
 SPA modular, sem frameworks pesados, construída com HTML5 + CSS3 + Tailwind CSS + JavaScript
 ES6 (módulos nativos) + Firebase (Auth, Firestore, Storage), pronta para GitHub Pages.
 
-Este README acompanha a **Etapa 1** do plano de entrega incremental do FinScore.
+Este README acompanha as **Etapas 1 e 2** do plano de entrega incremental do FinScore.
 
 ## ✅ O que já está pronto (Etapa 1)
 
@@ -33,13 +33,36 @@ Este README acompanha a **Etapa 1** do plano de entrega incremental do FinScore.
   JetBrains Mono), sombras, glassmorphism discreto e o **Score Ring**, elemento de assinatura
   visual do produto (anel circular que representa o Score de 0 a 100).
 
+## ✅ Etapa 2 — Cadastro e gerenciamento de despesas
+
+- **CRUD completo de gastos** (`js/modules/expenses.js` + `pages/expenses.html`): criar,
+  editar e excluir (com modal de confirmação), todos particionados por `uid`.
+- **Campos do formulário**: valor, categoria (12 categorias padrão + criação de categorias
+  personalizadas, salvas em `users/{uid}.categoriasCustom`), subcategoria, descrição, forma
+  de pagamento, data e hora, observações e upload opcional de comprovante (Firebase Storage).
+- **Localização automática**: botão que usa `navigator.geolocation` do navegador e resolve
+  cidade/estado/país via geocodificação reversa gratuita e sem chave (BigDataCloud, CORS
+  liberado para uso client-side) — grava `latitude`, `longitude`, `cidade`, `estado`, `pais`
+  e `endereco` no gasto.
+- **Busca instantânea, filtros e ordenação**: por descrição/categoria/cidade, categoria,
+  forma de pagamento, período (data início/fim) e ordenação por data ou valor — tudo
+  client-side, com paginação (8 itens por página).
+- **Dashboard conectado a dados reais** (preview): total gasto no mês, quantidade de
+  registros, distribuição por categoria (barras de progresso) e os 5 gastos mais recentes.
+  O gráfico de pizza interativo (Chart.js) e o Score Financeiro chegam nas próximas etapas.
+
+> Nota de arquitetura: `consultarPorUsuario` traz todos os gastos do usuário (filtrado só
+> por `uid`, sem `orderBy` na query) e a ordenação/filtro/paginação acontece no cliente —
+> isso evita a necessidade de criar um índice composto no Firestore nesta fase. Para uma
+> base de usuários maior, vale revisitar isso com paginação por cursor no servidor.
+
 ## 🚧 Ainda não implementado (próximas etapas do plano)
 
-Cadastro/edição de gastos, dashboard com dados reais, sistema de metas, algoritmo do Score
-Financeiro, gráficos (Chart.js), gamificação/conquistas, relatórios e exportações, insights
-inteligentes, integração com mapas/localização, e o polimento final. Os módulos
-`js/modules/{expenses,dashboard,goals,score,charts,achievements,maps}.js` já existem como
-stubs documentados, prontos para receber essa lógica sem quebrar a arquitetura atual.
+Dashboard completo com Score real, sistema de metas, algoritmo do Score Financeiro, gráficos
+interativos (Chart.js), gamificação/conquistas, relatórios e exportações, insights
+inteligentes, e o polimento final. Os módulos
+`js/modules/{dashboard,goals,score,charts,achievements,maps}.js` já existem como stubs
+documentados, prontos para receber essa lógica sem quebrar a arquitetura atual.
 
 ## Estrutura de pastas
 

@@ -27,36 +27,498 @@
   <div id="navbar-root" class="lg:pl-[var(--fs-sidebar-w)]"></div>
 
   <main class="lg:pl-[var(--fs-sidebar-w)] p-5 lg:p-8" style="max-width:1400px; margin:0 auto;">
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;" class="fs-animate-in">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:12px;" class="fs-animate-in">
       <div>
         <h1 class="fs-display" style="font-size:1.6rem; font-weight:700;">Gastos</h1>
         <p style="color:var(--fs-text-muted); font-size:0.9rem; margin-top:4px;">
           Registre, edite e acompanhe suas despesas.
         </p>
       </div>
-      <button id="fs-btn-novo-gasto" class="fs-btn fs-btn-primary" disabled title="Disponível na próxima etapa">
+      <button id="fs-btn-novo-gasto" class="fs-btn fs-btn-primary">
         <i data-lucide="plus" class="w-4 h-4"></i> Novo gasto
       </button>
     </div>
 
-    <div class="fs-surface fs-animate-in" style="padding:24px;">
-      <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:48px 16px; gap:12px;">
-        <div class="fs-empty-icon"><i data-lucide="wallet" class="w-6 h-6"></i></div>
-        <p style="font-weight:600;">O cadastro de gastos chega na próxima etapa</p>
-        <p style="font-size:0.85rem; color:var(--fs-text-muted); text-align:center; max-width:360px;">
-          Esta tela já está protegida por autenticação e pronta para receber o formulário de valor,
-          categoria, forma de pagamento, localização e comprovante.
-        </p>
+    <!-- Filtros -->
+    <div class="fs-surface fs-animate-in" style="padding:16px 20px; margin-bottom:18px;">
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" style="align-items:end;">
+        <div style="grid-column:span 2 / span 2;" class="lg:col-span-2">
+          <label style="font-size:0.72rem; color:var(--fs-text-muted); display:block; margin-bottom:4px;">Buscar</label>
+          <div style="position:relative;">
+            <i data-lucide="search" class="w-4 h-4" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--fs-text-muted);"></i>
+            <input id="fs-filtro-busca" class="fs-input" style="padding-left:32px;" placeholder="Descrição, categoria, cidade..." />
+          </div>
+        </div>
+        <div>
+          <label style="font-size:0.72rem; color:var(--fs-text-muted); display:block; margin-bottom:4px;">Categoria</label>
+          <select id="fs-filtro-categoria" class="fs-input"><option value="">Todas</option></select>
+        </div>
+        <div>
+          <label style="font-size:0.72rem; color:var(--fs-text-muted); display:block; margin-bottom:4px;">Pagamento</label>
+          <select id="fs-filtro-pagamento" class="fs-input"><option value="">Todas</option></select>
+        </div>
+        <div>
+          <label style="font-size:0.72rem; color:var(--fs-text-muted); display:block; margin-bottom:4px;">De</label>
+          <input id="fs-filtro-data-inicio" type="date" class="fs-input" />
+        </div>
+        <div>
+          <label style="font-size:0.72rem; color:var(--fs-text-muted); display:block; margin-bottom:4px;">Até</label>
+          <input id="fs-filtro-data-fim" type="date" class="fs-input" />
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-top:12px; flex-wrap:wrap; gap:10px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <label style="font-size:0.78rem; color:var(--fs-text-muted);">Ordenar por</label>
+          <select id="fs-filtro-ordenar" class="fs-input" style="width:auto; padding:8px 10px;">
+            <option value="dataHora:desc">Mais recentes</option>
+            <option value="dataHora:asc">Mais antigos</option>
+            <option value="valor:desc">Maior valor</option>
+            <option value="valor:asc">Menor valor</option>
+          </select>
+        </div>
+        <button id="fs-btn-limpar-filtros" class="fs-btn fs-btn-ghost" style="font-size:0.8rem;">
+          <i data-lucide="x" class="w-3.5 h-3.5"></i> Limpar filtros
+        </button>
       </div>
     </div>
+
+    <!-- Lista -->
+    <div class="fs-surface fs-animate-in" style="padding:8px;">
+      <div id="fs-lista-skeleton" style="padding:16px;"></div>
+      <div id="fs-lista-gastos"></div>
+      <div id="fs-lista-vazia" style="display:none; flex-direction:column; align-items:center; justify-content:center; padding:56px 16px; gap:12px;">
+        <div class="fs-empty-icon"><i data-lucide="wallet" class="w-6 h-6"></i></div>
+        <p style="font-weight:600;" id="fs-vazio-titulo">Nenhum gasto encontrado</p>
+        <p style="font-size:0.85rem; color:var(--fs-text-muted); text-align:center; max-width:340px;" id="fs-vazio-texto">
+          Registre seu primeiro gasto para começar a construir seu Score Financeiro.
+        </p>
+        <button id="fs-btn-novo-gasto-vazio" class="fs-btn fs-btn-primary" style="margin-top:4px;">
+          <i data-lucide="plus" class="w-4 h-4"></i> Registrar gasto
+        </button>
+      </div>
+    </div>
+
+    <!-- Paginação -->
+    <div id="fs-paginacao" style="display:flex; align-items:center; justify-content:space-between; margin-top:16px; font-size:0.82rem; color:var(--fs-text-muted);"></div>
   </main>
 
   <script type="module">
     import { iniciarPagina } from '../js/app.js';
+    import { getDocumento } from '../services/firestore.js';
+    import { uploadComprovante } from '../services/storageService.js';
+    import {
+      CATEGORIAS_PADRAO, FORMAS_PAGAMENTO, categoriasDisponiveis, criarCategoriaPersonalizada,
+      criarGasto, atualizarGasto, excluirGasto, listarGastosDoUsuario, filtrarOrdenarPaginar,
+      capturarLocalizacaoAtual,
+    } from '../js/modules/expenses.js';
+    import { formatarMoeda, formatarDataHora, debounce, qs } from '../js/modules/utils.js';
+    import { showToast } from '../components/toast.js';
+    import { comLoader, skeletonLinhas } from '../components/loader.js';
+    import { abrirModal, confirmar } from '../components/modal.js';
 
-    iniciarPagina('expenses', () => {
+    let uid = null;
+    let usuarioDoc = null;
+    let gastosCache = [];
+    let filtros = { pagina: 1, porPagina: 8, ordenarPor: 'dataHora', direcao: 'desc' };
+
+    qs('#fs-lista-skeleton').innerHTML = skeletonLinhas(4, 64);
+
+    iniciarPagina('expenses', async (user) => {
+      uid = user.uid;
+      usuarioDoc = await getDocumento('users', uid);
+      preencherSelects();
+      wireFiltros();
+      wireBotoesNovoGasto();
+      await recarregar();
       if (window.lucide) window.lucide.createIcons();
     });
+
+    function preencherSelects() {
+      const categorias = categoriasDisponiveis(usuarioDoc);
+      const selectCategoria = qs('#fs-filtro-categoria');
+      categorias.forEach((c) => {
+        const opt = document.createElement('option');
+        opt.value = c.nome;
+        opt.textContent = c.nome;
+        selectCategoria.appendChild(opt);
+      });
+
+      const selectPagamento = qs('#fs-filtro-pagamento');
+      FORMAS_PAGAMENTO.forEach((f) => {
+        const opt = document.createElement('option');
+        opt.value = f;
+        opt.textContent = f;
+        selectPagamento.appendChild(opt);
+      });
+    }
+
+    function wireFiltros() {
+      qs('#fs-filtro-busca').addEventListener('input', debounce((e) => {
+        filtros.busca = e.target.value;
+        filtros.pagina = 1;
+        renderLista();
+      }, 300));
+
+      qs('#fs-filtro-categoria').addEventListener('change', (e) => {
+        filtros.categoria = e.target.value;
+        filtros.pagina = 1;
+        renderLista();
+      });
+
+      qs('#fs-filtro-pagamento').addEventListener('change', (e) => {
+        filtros.formaPagamento = e.target.value;
+        filtros.pagina = 1;
+        renderLista();
+      });
+
+      qs('#fs-filtro-data-inicio').addEventListener('change', (e) => {
+        filtros.dataInicio = e.target.value;
+        filtros.pagina = 1;
+        renderLista();
+      });
+
+      qs('#fs-filtro-data-fim').addEventListener('change', (e) => {
+        filtros.dataFim = e.target.value;
+        filtros.pagina = 1;
+        renderLista();
+      });
+
+      qs('#fs-filtro-ordenar').addEventListener('change', (e) => {
+        const [campo, direcao] = e.target.value.split(':');
+        filtros.ordenarPor = campo;
+        filtros.direcao = direcao;
+        renderLista();
+      });
+
+      qs('#fs-btn-limpar-filtros').addEventListener('click', () => {
+        filtros = { pagina: 1, porPagina: 8, ordenarPor: 'dataHora', direcao: 'desc' };
+        qs('#fs-filtro-busca').value = '';
+        qs('#fs-filtro-categoria').value = '';
+        qs('#fs-filtro-pagamento').value = '';
+        qs('#fs-filtro-data-inicio').value = '';
+        qs('#fs-filtro-data-fim').value = '';
+        qs('#fs-filtro-ordenar').value = 'dataHora:desc';
+        renderLista();
+      });
+    }
+
+    function wireBotoesNovoGasto() {
+      qs('#fs-btn-novo-gasto').addEventListener('click', () => abrirFormularioGasto());
+      qs('#fs-btn-novo-gasto-vazio').addEventListener('click', () => abrirFormularioGasto());
+    }
+
+    async function recarregar() {
+      gastosCache = await listarGastosDoUsuario(uid);
+      qs('#fs-lista-skeleton').style.display = 'none';
+      renderLista();
+    }
+
+    function renderLista() {
+      const resultado = filtrarOrdenarPaginar(gastosCache, filtros);
+      const container = qs('#fs-lista-gastos');
+      const vazio = qs('#fs-lista-vazia');
+
+      if (resultado.totalItens === 0) {
+        container.innerHTML = '';
+        container.style.display = 'none';
+        vazio.style.display = 'flex';
+        const filtrosAtivos = filtros.busca || filtros.categoria || filtros.formaPagamento || filtros.dataInicio || filtros.dataFim;
+        qs('#fs-vazio-titulo').textContent = filtrosAtivos ? 'Nenhum gasto encontrado com esses filtros' : 'Nenhum gasto registrado ainda';
+        qs('#fs-vazio-texto').textContent = filtrosAtivos
+          ? 'Tente ajustar ou limpar os filtros acima.'
+          : 'Registre seu primeiro gasto para começar a construir seu Score Financeiro.';
+        qs('#fs-paginacao').innerHTML = '';
+        return;
+      }
+
+      container.style.display = 'block';
+      vazio.style.display = 'none';
+
+      container.innerHTML = resultado.itens.map((gasto) => `
+        <div class="fs-gasto-item" style="
+          display:flex; align-items:center; gap:14px; padding:14px 12px;
+          border-bottom:1px solid var(--fs-border);
+        ">
+          <div class="fs-empty-icon" style="width:42px;height:42px; flex-shrink:0;">
+            <i data-lucide="${iconeDaCategoria(gasto.categoria)}" class="w-5 h-5"></i>
+          </div>
+          <div style="flex:1; min-width:0;">
+            <p style="font-weight:600; font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+              ${escapeHTML(gasto.descricao) || escapeHTML(gasto.categoria)}
+            </p>
+            <p style="font-size:0.76rem; color:var(--fs-text-muted);">
+              ${escapeHTML(gasto.categoria)}${gasto.subcategoria ? ' · ' + escapeHTML(gasto.subcategoria) : ''}
+              · ${formatarDataHora(gasto.dataHora)}
+              ${gasto.cidade ? ' · ' + escapeHTML(gasto.cidade) : ''}
+            </p>
+          </div>
+          <div style="text-align:right; flex-shrink:0;">
+            <p class="fs-mono" style="font-weight:700; font-size:0.95rem;">${formatarMoeda(gasto.valor)}</p>
+            <p style="font-size:0.72rem; color:var(--fs-text-muted);">${escapeHTML(gasto.formaPagamento)}</p>
+          </div>
+          <div style="display:flex; gap:4px; flex-shrink:0;">
+            <button data-editar="${gasto.id}" class="fs-btn fs-btn-ghost" style="padding:8px;" aria-label="Editar">
+              <i data-lucide="pencil" class="w-4 h-4"></i>
+            </button>
+            <button data-excluir="${gasto.id}" class="fs-btn fs-btn-ghost" style="padding:8px; color:var(--fs-rose);" aria-label="Excluir">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      if (window.lucide) window.lucide.createIcons();
+
+      container.querySelectorAll('[data-editar]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const gasto = gastosCache.find((g) => g.id === btn.dataset.editar);
+          abrirFormularioGasto(gasto);
+        });
+      });
+
+      container.querySelectorAll('[data-excluir]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const ok = await confirmar({
+            titulo: 'Excluir gasto',
+            mensagem: 'Essa ação não pode ser desfeita. Deseja realmente excluir este gasto?',
+            textoConfirmar: 'Excluir',
+          });
+          if (!ok) return;
+          try {
+            await comLoader(excluirGasto(btn.dataset.excluir));
+            showToast('Gasto excluído.', 'success');
+            await recarregar();
+          } catch (err) {
+            console.error(err);
+            showToast('Não foi possível excluir o gasto.', 'error');
+          }
+        });
+      });
+
+      renderPaginacao(resultado);
+    }
+
+    function renderPaginacao(resultado) {
+      const el = qs('#fs-paginacao');
+      if (resultado.totalPaginas <= 1) {
+        el.innerHTML = `<span>${resultado.totalItens} gasto(s)</span>`;
+        return;
+      }
+      el.innerHTML = `
+        <span>Página ${resultado.pagina} de ${resultado.totalPaginas} · ${resultado.totalItens} gasto(s)</span>
+        <div style="display:flex; gap:6px;">
+          <button id="fs-pag-anterior" class="fs-btn fs-btn-secondary" style="padding:6px 10px;" ${resultado.pagina <= 1 ? 'disabled' : ''}>
+            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+          </button>
+          <button id="fs-pag-proxima" class="fs-btn fs-btn-secondary" style="padding:6px 10px;" ${resultado.pagina >= resultado.totalPaginas ? 'disabled' : ''}>
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+      `;
+      if (window.lucide) window.lucide.createIcons();
+      qs('#fs-pag-anterior')?.addEventListener('click', () => { filtros.pagina--; renderLista(); });
+      qs('#fs-pag-proxima')?.addEventListener('click', () => { filtros.pagina++; renderLista(); });
+    }
+
+    function iconeDaCategoria(nomeCategoria) {
+      const cat = CATEGORIAS_PADRAO.find((c) => c.nome === nomeCategoria);
+      return cat?.icone || 'tag';
+    }
+
+    function escapeHTML(str) {
+      if (!str) return '';
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    /** Converte um valor dataHora salvo (ISO string) para o formato aceito por <input type="datetime-local">. */
+    function paraDatetimeLocal(isoString) {
+      const d = isoString ? new Date(isoString) : new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    function abrirFormularioGasto(gastoExistente) {
+      const editando = Boolean(gastoExistente);
+      const categorias = categoriasDisponiveis(usuarioDoc);
+
+      const opcoesCategorias = categorias.map((c) =>
+        `<option value="${escapeHTML(c.nome)}" ${gastoExistente?.categoria === c.nome ? 'selected' : ''}>${escapeHTML(c.nome)}</option>`
+      ).join('') + '<option value="__nova__">+ Nova categoria personalizada</option>';
+
+      const opcoesPagamento = FORMAS_PAGAMENTO.map((f) =>
+        `<option value="${f}" ${gastoExistente?.formaPagamento === f ? 'selected' : ''}>${f}</option>`
+      ).join('');
+
+      const { fechar, elemento } = abrirModal({
+        titulo: editando ? 'Editar gasto' : 'Novo gasto',
+        conteudoHTML: `
+          <form id="fs-form-gasto">
+            <div class="grid grid-cols-2 gap-3" style="margin-bottom:12px;">
+              <div style="grid-column:span 2 / span 2;">
+                <label style="font-size:0.78rem; font-weight:500; display:block; margin-bottom:5px;">Valor (R$) *</label>
+                <input id="fs-gasto-valor" class="fs-input" type="number" step="0.01" min="0" required
+                  value="${gastoExistente?.valor ?? ''}" placeholder="0,00" />
+              </div>
+              <div>
+                <label style="font-size:0.78rem; font-weight:500; display:block; margin-bottom:5px;">Categoria *</label>
+                <select id="fs-gasto-categoria" class="fs-input" required>${opcoesCategorias}</select>
+              </div>
+              <div>
+                <label style="font-size:0.78rem; font-weight:500; display:block; margin-bottom:5px;">Subcategoria</label>
+                <input id="fs-gasto-subcategoria" class="fs-input" type="text" value="${escapeHTML(gastoExistente?.subcategoria) || ''}" />
+              </div>
+              <div style="grid-column:span 2 / span 2; display:none;" id="fs-nova-categoria-wrapper">
+                <label style="font-size:0.78rem; font-weight:500; display:block; margin-bottom:5px;">Nome da nova categoria</label>
+                <div style="display:flex; gap:8px;">
+                  <input id="fs-nova-categoria-nome" class="fs-input" type="text" placeholder="Ex: Cursos online" />
+                  <button type="button" id="fs-nova-categoria-confirmar" class="fs-btn fs-btn-secondary">Adicionar</button>
+                </div>
+              </div>
+              <div style="grid-column:span 2 / span 2;">
+                <label style="font-size:0.78rem; font-weight:500; display:block; margin-bottom:5px;">Descrição</label>
+                <input id="fs-gasto-descricao" class="fs-input" type="text" value="${escapeHTML(gastoExistente?.descricao) || ''}" placeholder="Ex: Almoço no restaurante X" />
+              </div>
+              <div>
+                <label style="font-size:0.78rem; font-weight:500; display:block; margin-bottom:5px;">Forma de pagamento *</label>
+                <select id="fs-gasto-pagamento" class="fs-input" required>${opcoesPagamento}</select>
+              </div>
+              <div>
+                <label style="font-size:0.78rem; font-weight:500; display:block; margin-bottom:5px;">Data e hora *</label>
+                <input id="fs-gasto-datahora" class="fs-input" type="datetime-local" required value="${paraDatetimeLocal(gastoExistente?.dataHora)}" />
+              </div>
+              <div style="grid-column:span 2 / span 2;">
+                <label style="font-size:0.78rem; font-weight:500; display:block; margin-bottom:5px;">Localização</label>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <button type="button" id="fs-gasto-localizar" class="fs-btn fs-btn-secondary" style="font-size:0.8rem;">
+                    <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> Capturar localização atual
+                  </button>
+                  <span id="fs-gasto-localizacao-texto" style="font-size:0.78rem; color:var(--fs-text-muted);">
+                    ${gastoExistente?.endereco || 'Nenhuma localização capturada'}
+                  </span>
+                </div>
+              </div>
+              <div style="grid-column:span 2 / span 2;">
+                <label style="font-size:0.78rem; font-weight:500; display:block; margin-bottom:5px;">Comprovante (opcional)</label>
+                <input id="fs-gasto-comprovante" class="fs-input" type="file" accept="image/*,application/pdf" style="padding:8px;" />
+              </div>
+              <div style="grid-column:span 2 / span 2;">
+                <label style="font-size:0.78rem; font-weight:500; display:block; margin-bottom:5px;">Observações</label>
+                <textarea id="fs-gasto-observacoes" class="fs-input" rows="2">${escapeHTML(gastoExistente?.observacoes) || ''}</textarea>
+              </div>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:4px;">
+              <button type="button" id="fs-gasto-cancelar" class="fs-btn fs-btn-secondary">Cancelar</button>
+              <button type="submit" class="fs-btn fs-btn-primary">${editando ? 'Salvar alterações' : 'Registrar gasto'}</button>
+            </div>
+          </form>
+        `,
+      });
+
+      if (window.lucide) window.lucide.createIcons();
+
+      let localizacaoCapturada = gastoExistente
+        ? {
+            latitude: gastoExistente.latitude,
+            longitude: gastoExistente.longitude,
+            cidade: gastoExistente.cidade,
+            estado: gastoExistente.estado,
+            pais: gastoExistente.pais,
+            endereco: gastoExistente.endereco,
+          }
+        : null;
+
+      elemento.querySelector('#fs-gasto-cancelar').addEventListener('click', fechar);
+
+      const selectCategoria = elemento.querySelector('#fs-gasto-categoria');
+      const novaCategoriaWrapper = elemento.querySelector('#fs-nova-categoria-wrapper');
+      selectCategoria.addEventListener('change', () => {
+        novaCategoriaWrapper.style.display = selectCategoria.value === '__nova__' ? 'block' : 'none';
+      });
+
+      elemento.querySelector('#fs-nova-categoria-confirmar').addEventListener('click', async () => {
+        const nome = elemento.querySelector('#fs-nova-categoria-nome').value.trim();
+        if (!nome) { showToast('Digite um nome para a categoria.', 'warning'); return; }
+        try {
+          await criarCategoriaPersonalizada(uid, nome);
+          usuarioDoc = await getDocumento('users', uid);
+          const opt = document.createElement('option');
+          opt.value = nome;
+          opt.textContent = nome;
+          selectCategoria.insertBefore(opt, selectCategoria.lastElementChild);
+          selectCategoria.value = nome;
+          novaCategoriaWrapper.style.display = 'none';
+          showToast('Categoria criada!', 'success');
+        } catch (err) {
+          console.error(err);
+          showToast('Não foi possível criar a categoria.', 'error');
+        }
+      });
+
+      elemento.querySelector('#fs-gasto-localizar').addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        const texto = elemento.querySelector('#fs-gasto-localizacao-texto');
+        btn.disabled = true;
+        texto.textContent = 'Obtendo localização...';
+        try {
+          localizacaoCapturada = await capturarLocalizacaoAtual();
+          texto.textContent = localizacaoCapturada.endereco || 'Localização capturada (endereço indisponível)';
+        } catch (err) {
+          console.error(err);
+          texto.textContent = 'Não foi possível obter a localização.';
+          showToast('Permita o acesso à localização para usar este recurso.', 'warning');
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      elemento.querySelector('#fs-form-gasto').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const categoriaSelecionada = selectCategoria.value;
+        if (categoriaSelecionada === '__nova__') {
+          showToast('Confirme a nova categoria antes de salvar, ou escolha outra.', 'warning');
+          return;
+        }
+
+        const dados = {
+          valor: elemento.querySelector('#fs-gasto-valor').value,
+          categoria: categoriaSelecionada,
+          subcategoria: elemento.querySelector('#fs-gasto-subcategoria').value.trim(),
+          descricao: elemento.querySelector('#fs-gasto-descricao').value.trim(),
+          formaPagamento: elemento.querySelector('#fs-gasto-pagamento').value,
+          dataHora: new Date(elemento.querySelector('#fs-gasto-datahora').value).toISOString(),
+          observacoes: elemento.querySelector('#fs-gasto-observacoes').value.trim(),
+          ...(localizacaoCapturada || {}),
+        };
+
+        const arquivo = elemento.querySelector('#fs-gasto-comprovante').files[0];
+
+        try {
+          if (editando) {
+            await comLoader(atualizarGasto(gastoExistente.id, dados));
+            if (arquivo) {
+              const url = await comLoader(uploadComprovante(uid, gastoExistente.id, arquivo));
+              await atualizarGasto(gastoExistente.id, { comprovanteUrl: url });
+            }
+            showToast('Gasto atualizado!', 'success');
+          } else {
+            const novoId = await comLoader(criarGasto(uid, dados));
+            if (arquivo) {
+              const url = await comLoader(uploadComprovante(uid, novoId, arquivo));
+              await atualizarGasto(novoId, { comprovanteUrl: url });
+            }
+            showToast('Gasto registrado!', 'success');
+          }
+          fechar();
+          await recarregar();
+        } catch (err) {
+          console.error(err);
+          showToast('Não foi possível salvar o gasto. Tente novamente.', 'error');
+        }
+      });
+    }
   </script>
 </body>
 </html>

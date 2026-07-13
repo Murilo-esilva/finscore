@@ -6,7 +6,6 @@
    e do "preto + verde ácido" padrão de IA: usamos tinta/papel
    com um gradiente índigo → teal como identidade.
    ========================================================= */
-
 :root {
   /* --- Cor: modo claro ("papel") --- */
   --fs-bg: #F7F8FB;
@@ -15,29 +14,24 @@
   --fs-border: #E2E6F0;
   --fs-text: #101425;
   --fs-text-muted: #5B6478;
-
   /* --- Cor: acentos (fixos entre temas) --- */
   --fs-indigo: #4F5FFF;
   --fs-indigo-600: #3F4EDB;
   --fs-teal: #22D3B9;
   --fs-amber: #F5A623;
   --fs-rose: #EF4565;
-
   /* Gradiente de assinatura (Score Ring / hero) */
   --fs-gradient: linear-gradient(135deg, var(--fs-indigo) 0%, var(--fs-teal) 100%);
-
   /* Score bands */
   --fs-score-excelente: #22D3B9;
   --fs-score-bom: #4F5FFF;
   --fs-score-regular: #F5A623;
   --fs-score-ruim: #F2734B;
   --fs-score-critico: #EF4565;
-
   /* --- Tipografia --- */
   --fs-font-display: 'Space Grotesk', 'Inter', sans-serif;
   --fs-font-body: 'Inter', system-ui, sans-serif;
   --fs-font-mono: 'JetBrains Mono', 'SFMono-Regular', monospace;
-
   /* --- Elevação / vidro --- */
   --fs-shadow-sm: 0 1px 2px rgba(16, 20, 37, 0.06);
   --fs-shadow-md: 0 8px 24px -8px rgba(16, 20, 37, 0.12);
@@ -45,25 +39,21 @@
   --fs-glass-bg: rgba(255, 255, 255, 0.72);
   --fs-glass-border: rgba(255, 255, 255, 0.5);
   --fs-glass-blur: blur(20px);
-
   /* --- Raio / espaçamento --- */
   --fs-radius-sm: 10px;
   --fs-radius-md: 16px;
   --fs-radius-lg: 24px;
   --fs-radius-full: 999px;
-
   /* --- Transições --- */
   --fs-ease: cubic-bezier(0.16, 1, 0.3, 1);
   --fs-transition-fast: 150ms var(--fs-ease);
   --fs-transition-base: 250ms var(--fs-ease);
   --fs-transition-slow: 450ms var(--fs-ease);
-
   /* --- Layout --- */
   --fs-sidebar-w: 264px;
   --fs-sidebar-w-collapsed: 84px;
   --fs-topbar-h: 72px;
 }
-
 /* --- Modo escuro ("tinta") --- */
 :root[data-theme='dark'] {
   --fs-bg: #0B0F1D;
@@ -72,10 +62,8 @@
   --fs-border: #232C48;
   --fs-text: #EDEFF7;
   --fs-text-muted: #8991AC;
-
   --fs-glass-bg: rgba(18, 23, 41, 0.6);
   --fs-glass-border: rgba(255, 255, 255, 0.08);
-
   --fs-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --fs-shadow-md: 0 8px 24px -8px rgba(0, 0, 0, 0.5);
   --fs-shadow-lg: 0 24px 48px -12px rgba(0, 0, 0, 0.6);

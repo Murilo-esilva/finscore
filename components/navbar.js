@@ -21,6 +21,13 @@ export function renderNavbar(usuario) {
   const iniciais = (usuario?.nome || usuario?.email || "?").trim().charAt(0).toUpperCase();
   const temaAtual = obterTemaSalvo();
 
+  // Mapeamento dinâmico de ícones para o Lucide
+  const obterIconeTema = (tema) => {
+    if (tema === "dark") return "moon";
+    if (tema === "light") return "sun";
+    return "monitor";
+  };
+
   raiz.innerHTML = `
     <header class="fs-glass" style="
       position:sticky; top:0; z-index:30; height:var(--fs-topbar-h);
@@ -40,7 +47,7 @@ export function renderNavbar(usuario) {
 
       <div style="display:flex; align-items:center; gap:8px;">
         <button id="fs-theme-toggle" class="fs-btn fs-btn-ghost" style="padding:8px;" aria-label="Alternar tema" title="Alternar tema">
-          <i data-lucide="${temaAtual === "dark" ? "moon" : temaAtual === "light" ? "sun" : "monitor"}" class="w-[18px] h-[18px]"></i>
+          <i id="fs-theme-icon" data-lucide="${obterIconeTema(temaAtual)}" class="w-[18px] h-[18px]"></i>
         </button>
 
         <div style="position:relative;">
@@ -76,42 +83,72 @@ export function renderNavbar(usuario) {
     </header>
   `;
 
+  // Inicializa os ícones imediatamente após montar o HTML
   if (window.lucide) window.lucide.createIcons();
 
-  document.getElementById("fs-menu-btn").addEventListener("click", alternarSidebarMobile);
+  // Controle da Sidebar Mobile
+  const menuBtnMobile = document.getElementById("fs-menu-btn");
+  if (menuBtnMobile) {
+    menuBtnMobile.addEventListener("click", alternarSidebarMobile);
+  }
 
+  // Controle do Menu de Usuário (Dropdown)
   const menuBtn = document.getElementById("fs-user-menu-btn");
   const menu = document.getElementById("fs-user-menu");
-  menuBtn.addEventListener("click", () => {
-    menu.style.display = menu.style.display === "block" ? "none" : "block";
-  });
-  document.addEventListener("click", (e) => {
-    if (!menuBtn.contains(e.target) && !menu.contains(e.target)) {
-      menu.style.display = "none";
-    }
-  });
+  
+  if (menuBtn && menu) {
+    menuBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      menu.style.display = menu.style.display === "block" ? "none" : "block";
+    });
 
-  document.getElementById("fs-theme-toggle").addEventListener("click", () => {
-    const atual = obterTemaSalvo();
-    const proximo = atual === "light" ? "dark" : atual === "dark" ? "system" : "light";
-    aplicarTema(proximo);
-    renderNavbar(usuario); // re-renderiza para atualizar o ícone
-  });
-
-  document.getElementById("fs-logout-btn").addEventListener("click", async () => {
-    try {
-      await logout();
-      window.location.href = "../index.html";
-    } catch (err) {
-      console.error(err);
-      showToast("Não foi possível sair. Tente novamente.", "error");
-    }
-  });
-
-  // Mostra o botão de menu apenas quando a sidebar está em modo drawer (mobile)
-  function ajustarBotaoMenu() {
-    document.getElementById("fs-menu-btn").style.display = window.innerWidth < 1024 ? "inline-flex" : "none";
+    document.addEventListener("click", (e) => {
+      if (!menuBtn.contains(e.target) && !menu.contains(e.target)) {
+        menu.style.display = "none";
+      }
+    });
   }
+
+  // Alternador de Tema Inteligente (sem re-renderizar a barra toda)
+  const themeToggle = document.getElementById("fs-theme-toggle");
+  if (themeToggle) {
+    themeToggle.addEventListener("click", () => {
+      const atual = obterTemaSalvo();
+      const proximo = atual === "light" ? "dark" : atual === "dark" ? "system" : "light";
+      
+      aplicarTema(proximo);
+
+      // Atualiza cirurgicamente apenas o ícone do tema
+      const iconeTema = document.getElementById("fs-theme-icon");
+      if (iconeTema) {
+        iconeTema.setAttribute("data-lucide", obterIconeTema(proximo));
+        if (window.lucide) window.lucide.createIcons();
+      }
+    });
+  }
+
+  // Botão de Logout
+  const logoutBtn = document.getElementById("fs-logout-btn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", async () => {
+      try {
+        await logout();
+        window.location.href = "../index.html";
+      } catch (err) {
+        console.error(err);
+        showToast("Não foi possível sair. Tente novamente.", "error");
+      }
+    });
+  }
+
+  // Gerenciador responsivo estável para o botão hambúrguer
+  function ajustarBotaoMenu() {
+    const btn = document.getElementById("fs-menu-btn");
+    if (btn) {
+      btn.style.display = window.innerWidth < 1024 ? "inline-flex" : "none";
+    }
+  }
+  
   window.addEventListener("resize", ajustarBotaoMenu);
-  ajustarBotaoMenu();
+  ajustarBotaoMenu(); // Execução imediata segura
 }

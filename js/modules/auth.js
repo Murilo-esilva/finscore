@@ -21,36 +21,52 @@ import {
 import { showToast } from "../../components/toast.js";
 import { comLoader } from "../../components/loader.js";
 import { qs } from "./utils.js";
+import {
+  getDocumento,
+  ensureUserDocument,
+} from "../../services/firestore.js";
 
 /**
  * Protege páginas internas: redireciona para o login se não
- * houver usuário autenticado. Chame no topo do script de cada
- * página em /pages, e use o callback para popular a UI com o
- * usuário já carregado.
+ * houver usuário autenticado.
  * @param {(user: import('firebase/auth').User) => void} aoAutenticar
  */
 export function exigirAutenticacao(aoAutenticar) {
-  observarAuth((user) => {
+  observarAuth(async (user) => {
     if (!user) {
       window.location.href = "../index.html";
       return;
     }
-    aoAutenticar(user);
+
+    try {
+      // Garante que o documento exista
+      await ensureUserDocument(user);
+
+      // Busca os dados completos do Firestore
+      const usuarioDoc = await getDocumento("users", user.uid);
+
+      await aoAutenticar(user, usuarioDoc);
+    } catch (erro) {
+      console.error("Erro ao carregar dados do usuário:", erro);
+
+      // Ainda permite a navegação caso haja algum problema
+      await aoAutenticar(user, null);
+    }
   });
 }
 
 /**
- * Inicializa a página de login/cadastro (index.html). Deve ser
- * chamada apenas nessa página.
+ * Inicializa a página de login/cadastro (index.html).
  */
 export function inicializarPaginaDeLogin() {
-  // Se já existir uma sessão ativa, pula direto para o dashboard.
+  // Se já existir uma sessão ativa, o próprio observador redireciona
   observarAuth((user) => {
-    if (user) window.location.href = "pages/dashboard.html";
+    if (user) {
+      window.location.href = "pages/dashboard.html";
+    }
   });
 
   let modoCadastro = false;
-
   const form = qs("#fs-auth-form");
   const nomeWrapper = qs("#fs-campo-nome");
   const tituloForm = qs("#fs-auth-titulo");
@@ -96,7 +112,7 @@ export function inicializarPaginaDeLogin() {
   botaoGoogle?.addEventListener("click", async () => {
     try {
       await comLoader(loginComGoogle());
-      window.location.href = "pages/dashboard.html";
+      // O redirecionamento acontece automaticamente pelo observarAuth no topo
     } catch (err) {
       if (err.code !== "auth/popup-closed-by-user") {
         showToast(mensagemDeErroAuth(err.code), "error");
@@ -107,16 +123,16 @@ export function inicializarPaginaDeLogin() {
 form?.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const nome = qs("#fs-input-nome")?.value?.trim();
-  const email = qs("#fs-input-email")?.value?.trim();
-  const senha = qs("#fs-input-senha")?.value;
-
-  try {
-    if (modoCadastro) {
-      await comLoader(cadastrarComEmailSenha(nome, email, senha));
-      showToast("Conta criada com sucesso!", "success");
-    } else {
-      await comLoader(loginComEmailSenha(email, senha));
+    try {
+      if (modoCadastro) {
+        await comLoader(cadastrarComEmailSenha(nome, email, senha));
+        showToast("Conta criada com sucesso!", "success");
+      } else {
+        await comLoader(loginComEmailSenha(email, senha));
+      }
+      // O redirecionamento acontece automaticamente pelo observarAuth no topo
+    } catch (err) {
+      showToast(mensagemDeErroAuth(err.code), "error");
     }
 
     window.location.href = "pages/dashboard.html";
@@ -129,3 +145,4 @@ form?.addEventListener("submit", async (e) => {
 atualizarModo();
 
 }
+
