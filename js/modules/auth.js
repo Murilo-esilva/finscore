@@ -21,11 +21,10 @@ import {
 import { showToast } from "../../components/toast.js";
 import { comLoader } from "../../components/loader.js";
 import { qs } from "./utils.js";
+
 /**
  * Protege páginas internas: redireciona para o login se não
- * houver usuário autenticado. Chame no topo do script de cada
- * página em /pages, e use o callback para popular a UI com o
- * usuário já carregado.
+ * houver usuário autenticado.
  * @param {(user: import('firebase/auth').User) => void} aoAutenticar
  */
 export function exigirAutenticacao(aoAutenticar) {
@@ -37,15 +36,18 @@ export function exigirAutenticacao(aoAutenticar) {
     aoAutenticar(user);
   });
 }
+
 /**
- * Inicializa a página de login/cadastro (index.html). Deve ser
- * chamada apenas nessa página.
+ * Inicializa a página de login/cadastro (index.html).
  */
 export function inicializarPaginaDeLogin() {
-  // Se já existir uma sessão ativa, pula direto para o dashboard.
+  // Se já existir uma sessão ativa, o próprio observador redireciona
   observarAuth((user) => {
-    if (user) window.location.href = "pages/dashboard.html";
+    if (user) {
+      window.location.href = "pages/dashboard.html";
+    }
   });
+
   let modoCadastro = false;
   const form = qs("#fs-auth-form");
   const nomeWrapper = qs("#fs-campo-nome");
@@ -55,6 +57,7 @@ export function inicializarPaginaDeLogin() {
   const linkAlternar = qs("#fs-auth-alternar");
   const linkEsqueciSenha = qs("#fs-esqueci-senha");
   const botaoGoogle = qs("#fs-btn-google");
+
   function atualizarModo() {
     nomeWrapper.style.display = modoCadastro ? "block" : "none";
     tituloForm.textContent = modoCadastro ? "Crie sua conta" : "Bem-vindo de volta";
@@ -66,11 +69,13 @@ export function inicializarPaginaDeLogin() {
       ? "Já tem uma conta? Entrar"
       : "Ainda não tem conta? Cadastre-se";
   }
+
   linkAlternar?.addEventListener("click", (e) => {
     e.preventDefault();
     modoCadastro = !modoCadastro;
     atualizarModo();
   });
+
   linkEsqueciSenha?.addEventListener("click", async (e) => {
     e.preventDefault();
     const email = qs("#fs-input-email")?.value?.trim();
@@ -85,21 +90,24 @@ export function inicializarPaginaDeLogin() {
       showToast(mensagemDeErroAuth(err.code), "error");
     }
   });
+
   botaoGoogle?.addEventListener("click", async () => {
     try {
       await comLoader(loginComGoogle());
-      window.location.href = "pages/dashboard.html";
+      // O redirecionamento acontece automaticamente pelo observarAuth no topo
     } catch (err) {
       if (err.code !== "auth/popup-closed-by-user") {
         showToast(mensagemDeErroAuth(err.code), "error");
       }
     }
   });
+
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const nome = qs("#fs-input-nome")?.value?.trim();
     const email = qs("#fs-input-email")?.value?.trim();
     const senha = qs("#fs-input-senha")?.value;
+
     try {
       if (modoCadastro) {
         await comLoader(cadastrarComEmailSenha(nome, email, senha));
@@ -107,11 +115,12 @@ export function inicializarPaginaDeLogin() {
       } else {
         await comLoader(loginComEmailSenha(email, senha));
       }
-      window.location.href = "pages/dashboard.html";
+      // O redirecionamento acontece automaticamente pelo observarAuth no topo
     } catch (err) {
       showToast(mensagemDeErroAuth(err.code), "error");
     }
   });
+
   atualizarModo();
 }
 
