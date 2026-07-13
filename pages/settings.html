@@ -4,16 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FinScore — Configurações</title>
-
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
-
   <link rel="stylesheet" href="../css/variables.css" />
   <link rel="stylesheet" href="../css/style.css" />
-
   <script>
     (function () {
       const salvo = localStorage.getItem('fs-theme') || 'system';
@@ -25,7 +22,6 @@
 <body>
   <div id="sidebar-root"></div>
   <div id="navbar-root" class="lg:pl-[var(--fs-sidebar-w)]"></div>
-
   <main class="lg:pl-[var(--fs-sidebar-w)] p-5 lg:p-8" style="max-width:900px; margin:0 auto;">
     <div style="margin-bottom:24px;" class="fs-animate-in">
       <h1 class="fs-display" style="font-size:1.6rem; font-weight:700;">Configurações</h1>
@@ -33,7 +29,6 @@
         Tema, moeda, idioma, metas e categorias.
       </p>
     </div>
-
     <div class="fs-surface fs-animate-in" style="padding:24px; margin-bottom:16px;">
       <p style="font-size:0.85rem; font-weight:600; margin-bottom:16px;">Aparência</p>
       <div style="display:flex; align-items:center; justify-content:space-between;">
@@ -48,26 +43,141 @@
         </div>
       </div>
     </div>
-
     <div class="fs-surface fs-animate-in" style="padding:24px;">
-      <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px 16px; gap:12px;">
-        <div class="fs-empty-icon"><i data-lucide="settings-2" class="w-6 h-6"></i></div>
-        <p style="font-weight:600;">Moeda, idioma, metas e categorias chegam em breve</p>
-        <p style="font-size:0.85rem; color:var(--fs-text-muted); text-align:center; max-width:380px;">
-          Essas preferências serão conectadas ao documento do usuário no Firestore junto com o
-          "Sistema de Metas" do plano de entrega.
-        </p>
-      </div>
+      <p style="font-size:0.85rem; font-weight:600; margin-bottom:16px;">Metas Financeiras</p>
+      
+      <form id="fs-form-metas" style="display:flex; flex-direction:column; gap:16px;">
+        <!-- Meta Mensal -->
+        <div>
+          <label style="display:block; font-size:0.85rem; font-weight:500; margin-bottom:6px;">
+            Meta Mensal (R$)
+          </label>
+          <input 
+            type="number" 
+            id="fs-input-meta-mensal" 
+            placeholder="Defina seu orçamento mensal"
+            min="0"
+            step="0.01"
+            style="width:100%; padding:10px; border:1px solid var(--fs-border); border-radius:6px; background:var(--fs-surface); color:var(--fs-text); font-size:0.9rem;"
+          />
+          <p style="font-size:0.75rem; color:var(--fs-text-muted); margin-top:4px;">Limite de gastos para o mês</p>
+        </div>
+        <!-- Meta Semanal -->
+        <div>
+          <label style="display:block; font-size:0.85rem; font-weight:500; margin-bottom:6px;">
+            Meta Semanal (R$)
+          </label>
+          <input 
+            type="number" 
+            id="fs-input-meta-semanal" 
+            placeholder="Defina seu orçamento semanal"
+            min="0"
+            step="0.01"
+            style="width:100%; padding:10px; border:1px solid var(--fs-border); border-radius:6px; background:var(--fs-surface); color:var(--fs-text); font-size:0.9rem;"
+          />
+          <p style="font-size:0.75rem; color:var(--fs-text-muted); margin-top:4px;">Limite de gastos para a semana</p>
+        </div>
+        <!-- Meta Diária -->
+        <div>
+          <label style="display:block; font-size:0.85rem; font-weight:500; margin-bottom:6px;">
+            Meta Diária (R$)
+          </label>
+          <input 
+            type="number" 
+            id="fs-input-meta-diaria" 
+            placeholder="Defina seu orçamento diário"
+            min="0"
+            step="0.01"
+            style="width:100%; padding:10px; border:1px solid var(--fs-border); border-radius:6px; background:var(--fs-surface); color:var(--fs-text); font-size:0.9rem;"
+          />
+          <p style="font-size:0.75rem; color:var(--fs-text-muted); margin-top:4px;">Limite de gastos por dia</p>
+        </div>
+        <!-- Objetivo Economia -->
+        <div>
+          <label style="display:block; font-size:0.85rem; font-weight:500; margin-bottom:6px;">
+            Meta de Economia (R$)
+          </label>
+          <input 
+            type="number" 
+            id="fs-input-objetivo-economia" 
+            placeholder="Quanto você quer poupar?"
+            min="0"
+            step="0.01"
+            style="width:100%; padding:10px; border:1px solid var(--fs-border); border-radius:6px; background:var(--fs-surface); color:var(--fs-text); font-size:0.9rem;"
+          />
+          <p style="font-size:0.75rem; color:var(--fs-text-muted); margin-top:4px;">Meta de economia mensal</p>
+        </div>
+        <!-- Salário (para cálculo de economia) -->
+        <div>
+          <label style="display:block; font-size:0.85rem; font-weight:500; margin-bottom:6px;">
+            Renda Mensal (R$) — Opcional
+          </label>
+          <input 
+            type="number" 
+            id="fs-input-salario" 
+            placeholder="Sua renda mensal (para calcular economia)"
+            min="0"
+            step="0.01"
+            style="width:100%; padding:10px; border:1px solid var(--fs-border); border-radius:6px; background:var(--fs-surface); color:var(--fs-text); font-size:0.9rem;"
+          />
+          <p style="font-size:0.75rem; color:var(--fs-text-muted); margin-top:4px;">Usado para calcular quanto você economizou</p>
+        </div>
+        <button type="submit" class="fs-btn fs-btn-primary" style="margin-top:12px;">
+          <i data-lucide="save" class="w-4 h-4"></i> Salvar Metas
+        </button>
+      </form>
     </div>
   </main>
-
   <script type="module">
     import { iniciarPagina } from '../js/app.js';
     import { aplicarTema } from '../js/modules/utils.js';
-
-    iniciarPagina('settings', () => {
+    import { salvarMetas, obterMetas } from '../js/modules/goals.js';
+    import { showLoading, hideLoading, showMessage } from '../components/loader.js';
+    iniciarPagina('settings', async (user, usuarioDoc) => {
       document.querySelectorAll('.fs-tema-opcao').forEach((btn) => {
         btn.addEventListener('click', () => aplicarTema(btn.dataset.tema));
+      });
+      
+      // Carregar metas existentes
+      if (usuarioDoc) {
+        const metas = obterMetas(usuarioDoc);
+        document.getElementById('fs-input-meta-mensal').value = metas.metaMensal || '';
+        document.getElementById('fs-input-meta-semanal').value = metas.metaSemanal || '';
+        document.getElementById('fs-input-meta-diaria').value = metas.metaDiaria || '';
+        document.getElementById('fs-input-objetivo-economia').value = metas.objetivoEconomia || '';
+        document.getElementById('fs-input-salario').value = usuarioDoc.salario || '';
+      }
+      // Salvar metas
+      document.getElementById('fs-form-metas').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        showLoading();
+        
+        try {
+          const metaMensal = parseFloat(document.getElementById('fs-input-meta-mensal').value) || 0;
+          const metaSemanal = parseFloat(document.getElementById('fs-input-meta-semanal').value) || 0;
+          const metaDiaria = parseFloat(document.getElementById('fs-input-meta-diaria').value) || 0;
+          const objetivoEconomia = parseFloat(document.getElementById('fs-input-objetivo-economia').value) || 0;
+          const salario = parseFloat(document.getElementById('fs-input-salario').value) || 0;
+          // Salvar metas globais
+          await salvarMetas(user.uid, {
+            metaMensal,
+            metaSemanal,
+            metaDiaria,
+            objetivoEconomia,
+            metasPorCategoria: usuarioDoc?.metasPorCategoria || {},
+          });
+          // Salvar salário junto com outros dados do usuário
+          if (salario > 0) {
+            const { atualizarDocumento } = await import('../../services/firestore.js');
+            await atualizarDocumento('users', user.uid, { salario });
+          }
+          hideLoading();
+          showMessage('Metas salvas com sucesso! 🎯');
+        } catch (erro) {
+          hideLoading();
+          console.error('Erro ao salvar metas:', erro);
+          showMessage('Erro ao salvar metas.', 'error');
+        }
       });
       if (window.lucide) window.lucide.createIcons();
     });
