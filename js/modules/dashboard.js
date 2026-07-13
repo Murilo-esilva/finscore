@@ -78,6 +78,7 @@ export function renderizarScore(score) {
     descricao.textContent = `Seu Score: ${Math.round(score)} · ${rotulo}`;
   }
 }
+/**
  * @param {Array} progressosPorCategoria - Array de objetos com categoria, gasto, meta, etc
  * @param {Array} categorias - Lista de categorias disponíveis
  */
