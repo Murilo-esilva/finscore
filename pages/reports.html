@@ -4,16 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FinScore — Relatórios</title>
-
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
-
   <link rel="stylesheet" href="../css/variables.css" />
   <link rel="stylesheet" href="../css/style.css" />
-
   <script>
     (function () {
       const salvo = localStorage.getItem('fs-theme') || 'system';
@@ -25,33 +22,239 @@
 <body>
   <div id="sidebar-root"></div>
   <div id="navbar-root" class="lg:pl-[var(--fs-sidebar-w)]"></div>
-
   <main class="lg:pl-[var(--fs-sidebar-w)] p-5 lg:p-8" style="max-width:1400px; margin:0 auto;">
     <div style="margin-bottom:24px;" class="fs-animate-in">
       <h1 class="fs-display" style="font-size:1.6rem; font-weight:700;">Relatórios</h1>
       <p style="color:var(--fs-text-muted); font-size:0.9rem; margin-top:4px;">
-        Visões mensais, semanais, anuais e por categoria, forma de pagamento e localização.
+        Analise seus gastos com filtros por período, categoria e forma de pagamento.
       </p>
     </div>
-
-    <div class="fs-surface fs-animate-in" style="padding:24px;">
-      <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:48px 16px; gap:12px;">
-        <div class="fs-empty-icon"><i data-lucide="bar-chart-3" class="w-6 h-6"></i></div>
-        <p style="font-weight:600;">Os gráficos chegam na etapa "Gráficos" e "Relatórios"</p>
-        <p style="font-size:0.85rem; color:var(--fs-text-muted); text-align:center; max-width:380px;">
-          Esta página está pronta para receber Chart.js (pizza, linha, barra, área) e os filtros
-          de período, categoria e localização.
-        </p>
+    <!-- Filtros -->
+    <div class="fs-surface fs-animate-in" style="padding:24px; margin-bottom:20px;">
+      <p style="font-size:0.85rem; font-weight:600; margin-bottom:16px;">Filtros</p>
+      <form id="fs-form-filtros" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px;">
+        <div>
+          <label style="display:block; font-size:0.78rem; color:var(--fs-text-muted); margin-bottom:6px;">Data Inicial</label>
+          <input type="date" id="fs-data-inicio" style="width:100%; padding:8px; border:1px solid var(--fs-border); border-radius:6px; background:var(--fs-surface); color:var(--fs-text);" />
+        </div>
+        <div>
+          <label style="display:block; font-size:0.78rem; color:var(--fs-text-muted); margin-bottom:6px;">Data Final</label>
+          <input type="date" id="fs-data-fim" style="width:100%; padding:8px; border:1px solid var(--fs-border); border-radius:6px; background:var(--fs-surface); color:var(--fs-text);" />
+        </div>
+        <div>
+          <label style="display:block; font-size:0.78rem; color:var(--fs-text-muted); margin-bottom:6px;">Categoria</label>
+          <select id="fs-categoria-filtro" style="width:100%; padding:8px; border:1px solid var(--fs-border); border-radius:6px; background:var(--fs-surface); color:var(--fs-text);">
+            <option value="todas">Todas as categorias</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block; font-size:0.78rem; color:var(--fs-text-muted); margin-bottom:6px;">Forma de Pagamento</label>
+          <select id="fs-pagamento-filtro" style="width:100%; padding:8px; border:1px solid var(--fs-border); border-radius:6px; background:var(--fs-surface); color:var(--fs-text);">
+            <option value="todas">Todas as formas</option>
+          </select>
+        </div>
+      </form>
+      <div style="display:flex; gap:8px; margin-top:16px;">
+        <button type="button" class="fs-btn fs-btn-primary" id="fs-btn-filtrar">
+          <i data-lucide="filter" class="w-4 h-4"></i> Filtrar
+        </button>
+        <button type="button" class="fs-btn fs-btn-secondary" id="fs-btn-limpar">
+          <i data-lucide="x" class="w-4 h-4"></i> Limpar
+        </button>
+      </div>
+    </div>
+    <!-- Resumo -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" style="margin-bottom:20px;">
+      <div class="fs-surface fs-animate-in" style="padding:20px;">
+        <p style="font-size:0.78rem; color:var(--fs-text-muted); margin-bottom:6px;">Total</p>
+        <p id="fs-resumo-total" class="fs-mono" style="font-size:1.5rem; font-weight:700;">R$ 0,00</p>
+      </div>
+      <div class="fs-surface fs-animate-in" style="padding:20px;">
+        <p style="font-size:0.78rem; color:var(--fs-text-muted); margin-bottom:6px;">Média</p>
+        <p id="fs-resumo-media" class="fs-mono" style="font-size:1.5rem; font-weight:700;">R$ 0,00</p>
+      </div>
+      <div class="fs-surface fs-animate-in" style="padding:20px;">
+        <p style="font-size:0.78rem; color:var(--fs-text-muted); margin-bottom:6px;">Maior Gasto</p>
+        <p id="fs-resumo-maior" class="fs-mono" style="font-size:1.5rem; font-weight:700;">R$ 0,00</p>
+      </div>
+      <div class="fs-surface fs-animate-in" style="padding:20px;">
+        <p style="font-size:0.78rem; color:var(--fs-text-muted); margin-bottom:6px;">Registros</p>
+        <p id="fs-resumo-registros" class="fs-mono" style="font-size:1.5rem; font-weight:700;">0</p>
+      </div>
+    </div>
+    <!-- Gráficos do Relatório -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5" style="margin-bottom:20px;">
+      <div class="fs-surface fs-animate-in" style="padding:24px;">
+        <p style="font-size:0.85rem; font-weight:600; margin-bottom:16px;">Distribuição por Categoria</p>
+        <div style="position:relative; height:300px;">
+          <canvas id="fs-chart-relatorio-pizza"></canvas>
+        </div>
+      </div>
+      <div class="fs-surface fs-animate-in" style="padding:24px;">
+        <p style="font-size:0.85rem; font-weight:600; margin-bottom:16px;">Gastos por Forma de Pagamento</p>
+        <div style="position:relative; height:300px;">
+          <canvas id="fs-chart-relatorio-pagamento"></canvas>
+        </div>
+      </div>
+    </div>
+    <!-- Tabela de Detalhes -->
+    <div class="fs-surface fs-animate-in" style="padding:24px; margin-bottom:20px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+        <p style="font-size:0.85rem; font-weight:600;">Detalhes dos Gastos</p>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="fs-btn fs-btn-secondary fs-btn-sm" id="fs-btn-exportar-csv">
+            <i data-lucide="download" class="w-3 h-3"></i> CSV
+          </button>
+          <button type="button" class="fs-btn fs-btn-secondary fs-btn-sm" id="fs-btn-exportar-pdf" title="Disponível em breve">
+            <i data-lucide="download" class="w-3 h-3"></i> PDF
+          </button>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table id="fs-tabela-relatorio" style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+          <thead style="border-bottom:2px solid var(--fs-border);">
+            <tr>
+              <th style="text-align:left; padding:12px; font-weight:600;">Data</th>
+              <th style="text-align:left; padding:12px; font-weight:600;">Categoria</th>
+              <th style="text-align:left; padding:12px; font-weight:600;">Descrição</th>
+              <th style="text-align:right; padding:12px; font-weight:600;">Valor</th>
+              <th style="text-align:left; padding:12px; font-weight:600;">Forma de Pagamento</th>
+            </tr>
+          </thead>
+          <tbody id="fs-tabela-corpo">
+          </tbody>
+        </table>
       </div>
     </div>
   </main>
-
   <script type="module">
     import { iniciarPagina } from '../js/app.js';
-
-    iniciarPagina('reports', () => {
+    import { listarGastosDoUsuario, CATEGORIAS_PADRAO, FORMAS_PAGAMENTO } from '../js/modules/expenses.js';
+    import { formatarMoeda, formatarData } from '../js/modules/utils.js';
+    import { aplicarFiltrosRelatorio, gerarResumoRelatorio, exportarCSV } from '../js/modules/reports.js';
+    import { criarGraficoPizza } from '../js/modules/charts.js';
+    let despesasOriginais = [];
+    let chartsInstances = {};
+    iniciarPagina('reports', async (user) => {
+      despesasOriginais = await listarGastosDoUsuario(user.uid);
+      // Preencher selects com categorias e formas de pagamento
+      const selectCategoria = document.getElementById('fs-categoria-filtro');
+      const selectPagamento = document.getElementById('fs-pagamento-filtro');
+      CATEGORIAS_PADRAO.forEach((cat) => {
+        const option = document.createElement('option');
+        option.value = cat.nome;
+        option.textContent = cat.nome;
+        selectCategoria.appendChild(option);
+      });
+      FORMAS_PAGAMENTO.forEach((forma) => {
+        const option = document.createElement('option');
+        option.value = forma;
+        option.textContent = forma;
+        selectPagamento.appendChild(option);
+      });
+      // Eventos dos botões
+      document.getElementById('fs-btn-filtrar').addEventListener('click', aplicarFiltros);
+      document.getElementById('fs-btn-limpar').addEventListener('click', limparFiltros);
+      document.getElementById('fs-btn-exportar-csv').addEventListener('click', () => {
+        const despesas = obterDespesasAtual();
+        if (despesas.length > 0) {
+          exportarCSV(despesas, 'relatorio-finscore');
+        }
+      });
+      // Inicializar
+      atualizarRelatorio(despesasOriginais);
       if (window.lucide) window.lucide.createIcons();
     });
+    function aplicarFiltros() {
+      const dataInicio = document.getElementById('fs-data-inicio').value;
+      const dataFim = document.getElementById('fs-data-fim').value;
+      const categoria = document.getElementById('fs-categoria-filtro').value;
+      const formaPagamento = document.getElementById('fs-pagamento-filtro').value;
+      const despesasFiltradas = aplicarFiltrosRelatorio(despesasOriginais, {
+        dataInicio,
+        dataFim,
+        categoria,
+        formaPagamento,
+      });
+      atualizarRelatorio(despesasFiltradas);
+    }
+    function limparFiltros() {
+      document.getElementById('fs-data-inicio').value = '';
+      document.getElementById('fs-data-fim').value = '';
+      document.getElementById('fs-categoria-filtro').value = 'todas';
+      document.getElementById('fs-pagamento-filtro').value = 'todas';
+      atualizarRelatorio(despesasOriginais);
+    }
+    function obterDespesasAtual() {
+      const dataInicio = document.getElementById('fs-data-inicio').value;
+      const dataFim = document.getElementById('fs-data-fim').value;
+      const categoria = document.getElementById('fs-categoria-filtro').value;
+      const formaPagamento = document.getElementById('fs-pagamento-filtro').value;
+      return aplicarFiltrosRelatorio(despesasOriginais, {
+        dataInicio,
+        dataFim,
+        categoria,
+        formaPagamento,
+      });
+    }
+    function atualizarRelatorio(despesas) {
+      // Atualizar resumo
+      const resumo = gerarResumoRelatorio(despesas);
+      document.getElementById('fs-resumo-total').textContent = formatarMoeda(resumo.total);
+      document.getElementById('fs-resumo-media').textContent = formatarMoeda(resumo.media);
+      document.getElementById('fs-resumo-maior').textContent = formatarMoeda(resumo.maiorGasto);
+      document.getElementById('fs-resumo-registros').textContent = resumo.numRegistros;
+      // Atualizar gráficos
+      setTimeout(() => {
+        const tema = document.documentElement.getAttribute('data-theme') || 'light';
+        // Limpar gráficos antigos
+        Object.values(chartsInstances).forEach((chart) => {
+          if (chart && chart.destroy) chart.destroy();
+        });
+        chartsInstances = {};
+        // Gráfico de pizza (categorias)
+        if (despesas.length > 0) {
+          chartsInstances.pizza = criarGraficoPizza('fs-chart-relatorio-pizza', despesas, { tema });
+          // Gráfico de pagamento
+          const porPagamento = {};
+          despesas.forEach((d) => {
+            const forma = d.formaPagamento || 'Outro';
+            porPagamento[forma] = (porPagamento[forma] || 0) + (d.valor || 0);
+          });
+          const despesasPorForma = Object.entries(porPagamento).map(([forma, total]) => ({
+            categoria: forma,
+            valor: total,
+          }));
+          chartsInstances.pagamento = criarGraficoPizza('fs-chart-relatorio-pagamento', despesasPorForma, { tema });
+        }
+      }, 100);
+      // Atualizar tabela
+      const tbody = document.getElementById('fs-tabela-corpo');
+      if (despesas.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="padding:24px; text-align:center; color:var(--fs-text-muted);">Nenhum gasto encontrado com estes filtros.</td></tr>';
+      } else {
+        tbody.innerHTML = despesas
+          .sort((a, b) => new Date(b.dataHora) - new Date(a.dataHora))
+          .map(
+            (d) => `
+          <tr style="border-bottom:1px solid var(--fs-border);">
+            <td style="padding:12px;">${formatarData(d.dataHora)}</td>
+            <td style="padding:12px;">${escapeHTML(d.categoria || '—')}</td>
+            <td style="padding:12px; max-width:200px; overflow:hidden; text-overflow:ellipsis;">${escapeHTML(d.descricao || '—')}</td>
+            <td style="padding:12px; text-align:right; font-weight:600;">${formatarMoeda(d.valor || 0)}</td>
+            <td style="padding:12px;">${escapeHTML(d.formaPagamento || '—')}</td>
+          </tr>
+        `
+          )
+          .join('');
+      }
+    }
+    function escapeHTML(str) {
+      if (!str) return '';
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
   </script>
 </body>
 </html>
