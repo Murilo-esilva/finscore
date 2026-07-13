@@ -21,6 +21,10 @@ import {
 import { showToast } from "../../components/toast.js";
 import { comLoader } from "../../components/loader.js";
 import { qs } from "./utils.js";
+import {
+  getDocumento,
+  ensureUserDocument,
+} from "../../services/firestore.js";
 
 /**
  * Protege páginas internas: redireciona para o login se não
@@ -28,12 +32,26 @@ import { qs } from "./utils.js";
  * @param {(user: import('firebase/auth').User) => void} aoAutenticar
  */
 export function exigirAutenticacao(aoAutenticar) {
-  observarAuth((user) => {
+  observarAuth(async (user) => {
     if (!user) {
       window.location.href = "../index.html";
       return;
     }
-    aoAutenticar(user);
+
+    try {
+      // Garante que o documento exista
+      await ensureUserDocument(user);
+
+      // Busca os dados completos do Firestore
+      const usuarioDoc = await getDocumento("users", user.uid);
+
+      await aoAutenticar(user, usuarioDoc);
+    } catch (erro) {
+      console.error("Erro ao carregar dados do usuário:", erro);
+
+      // Ainda permite a navegação caso haja algum problema
+      await aoAutenticar(user, null);
+    }
   });
 }
 
