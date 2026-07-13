@@ -168,7 +168,7 @@
           });
           // Salvar salário junto com outros dados do usuário
           if (salario > 0) {
-            const { atualizarDocumento } = await import('../../services/firestore.js');
+            const { atualizarDocumento } = await import('../services/firestore.js');
             await atualizarDocumento('users', user.uid, { salario });
           }
           hideLoading();
