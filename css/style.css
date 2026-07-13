@@ -5,15 +5,12 @@
    scrollbars, estados de foco e microinterações que não são
    triviais de expressar em utilitários do Tailwind.
    ========================================================= */
-
 * {
   box-sizing: border-box;
 }
-
 html {
   scroll-behavior: smooth;
 }
-
 body {
   background: var(--fs-bg);
   color: var(--fs-text);
@@ -21,24 +18,20 @@ body {
   transition: background var(--fs-transition-base), color var(--fs-transition-base);
   -webkit-font-smoothing: antialiased;
 }
-
 h1, h2, h3, h4, .fs-display {
   font-family: var(--fs-font-display);
   letter-spacing: -0.02em;
 }
-
 .fs-mono {
   font-family: var(--fs-font-mono);
   font-variant-numeric: tabular-nums;
 }
-
 /* --- Foco visível (acessibilidade) --- */
 :focus-visible {
   outline: 2px solid var(--fs-indigo);
   outline-offset: 2px;
   border-radius: 6px;
 }
-
 /* --- Scrollbar discreta --- */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -47,7 +40,6 @@ h1, h2, h3, h4, .fs-display {
   border-radius: var(--fs-radius-full);
 }
 ::-webkit-scrollbar-thumb:hover { background: var(--fs-text-muted); }
-
 /* --- Superfícies --- */
 .fs-surface {
   background: var(--fs-surface);
@@ -57,7 +49,6 @@ h1, h2, h3, h4, .fs-display {
   transition: box-shadow var(--fs-transition-base), border-color var(--fs-transition-base);
 }
 .fs-surface:hover { box-shadow: var(--fs-shadow-md); }
-
 /* --- Glassmorphism discreto (usado em navbar, cards flutuantes, modal) --- */
 .fs-glass {
   background: var(--fs-glass-bg);
@@ -65,7 +56,6 @@ h1, h2, h3, h4, .fs-display {
   backdrop-filter: var(--fs-glass-blur);
   -webkit-backdrop-filter: var(--fs-glass-blur);
 }
-
 /* --- Botões --- */
 .fs-btn {
   display: inline-flex;
@@ -81,27 +71,23 @@ h1, h2, h3, h4, .fs-display {
   border: 1px solid transparent;
 }
 .fs-btn:active { transform: scale(0.97); }
-
 .fs-btn-primary {
   background: var(--fs-gradient);
   color: white;
   box-shadow: var(--fs-shadow-sm);
 }
 .fs-btn-primary:hover { box-shadow: var(--fs-shadow-md); }
-
 .fs-btn-secondary {
   background: var(--fs-surface);
   border-color: var(--fs-border);
   color: var(--fs-text);
 }
 .fs-btn-secondary:hover { background: var(--fs-surface-2); }
-
 .fs-btn-ghost {
   background: transparent;
   color: var(--fs-text-muted);
 }
 .fs-btn-ghost:hover { background: var(--fs-surface-2); color: var(--fs-text); }
-
 /* --- Inputs --- */
 .fs-input {
   width: 100%;
@@ -119,7 +105,6 @@ h1, h2, h3, h4, .fs-display {
   outline: none;
 }
 .fs-input::placeholder { color: var(--fs-text-muted); }
-
 /* =========================================================
    Score Ring — elemento de assinatura do FinScore
    Um anel circular (conic-gradient) que representa o Score
@@ -154,7 +139,6 @@ h1, h2, h3, h4, .fs-display {
   font-weight: 700;
   line-height: 1;
 }
-
 /* --- Animação de entrada suave para cards e páginas --- */
 @keyframes fs-rise {
   from { opacity: 0; transform: translateY(8px); }
@@ -163,7 +147,6 @@ h1, h2, h3, h4, .fs-display {
 .fs-animate-in {
   animation: fs-rise var(--fs-transition-slow) both;
 }
-
 /* --- Skeleton loading --- */
 .fs-skeleton {
   position: relative;
@@ -185,7 +168,6 @@ h1, h2, h3, h4, .fs-display {
 @keyframes fs-shimmer {
   100% { transform: translateX(100%); }
 }
-
 /* --- Respeita usuários com preferência por menos movimento --- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -195,7 +177,6 @@ h1, h2, h3, h4, .fs-display {
     scroll-behavior: auto !important;
   }
 }
-
 /* --- Toasts --- */
 .fs-toast {
   display: flex;
@@ -212,7 +193,6 @@ h1, h2, h3, h4, .fs-display {
   min-width: 260px;
   max-width: 360px;
 }
-
 /* --- Estado vazio ilustrado (placeholder simples, sem libs externas) --- */
 .fs-empty-icon {
   width: 56px;
