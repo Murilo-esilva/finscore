@@ -104,24 +104,28 @@ export function inicializarPaginaDeLogin() {
     }
   });
 
-  form?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const nome = qs("#fs-input-nome")?.value?.trim();
-    const email = qs("#fs-input-email")?.value?.trim();
-    const senha = qs("#fs-input-senha")?.value;
+form?.addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-    try {
-      if (modoCadastro) {
-        await comLoader(cadastrarComEmailSenha(nome, email, senha));
-        showToast("Conta criada com sucesso!", "success");
-      } else {
-        await comLoader(loginComEmailSenha(email, senha));
-      }
-      window.location.href = "pages/dashboard.html";
-    } catch (err) {
-      showToast(mensagemDeErroAuth(err.code), "error");
+  const nome = qs("#fs-input-nome")?.value?.trim();
+  const email = qs("#fs-input-email")?.value?.trim();
+  const senha = qs("#fs-input-senha")?.value;
+
+  try {
+    if (modoCadastro) {
+      await comLoader(cadastrarComEmailSenha(nome, email, senha));
+      showToast("Conta criada com sucesso!", "success");
+    } else {
+      await comLoader(loginComEmailSenha(email, senha));
     }
-  });
 
-  atualizarModo();
+    window.location.href = "pages/dashboard.html";
+  } catch (err) {
+    showToast(mensagemDeErroAuth(err.code), "error");
+  }
+});
+
+// Inicializa o modo da tela
+atualizarModo();
+
 }
