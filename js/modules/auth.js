@@ -120,11 +120,8 @@ export function inicializarPaginaDeLogin() {
     }
   });
 
-  form?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const nome = qs("#fs-input-nome")?.value?.trim();
-    const email = qs("#fs-input-email")?.value?.trim();
-    const senha = qs("#fs-input-senha")?.value;
+form?.addEventListener("submit", async (e) => {
+  e.preventDefault();
 
     try {
       if (modoCadastro) {
@@ -137,8 +134,15 @@ export function inicializarPaginaDeLogin() {
     } catch (err) {
       showToast(mensagemDeErroAuth(err.code), "error");
     }
-  });
 
-  atualizarModo();
+    window.location.href = "pages/dashboard.html";
+  } catch (err) {
+    showToast(mensagemDeErroAuth(err.code), "error");
+  }
+});
+
+// Inicializa o modo da tela
+atualizarModo();
+
 }
 
