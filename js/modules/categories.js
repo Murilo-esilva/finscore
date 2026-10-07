@@ -3,7 +3,7 @@ import {
   criarCategoria,
   atualizarCategoria,
   arquivarCategoria,
-} from "../../services/categoryService.js";
+} from "../../services/categoryService.js?v=20261007-category2";
 
 const esc = (value = "") =>
   String(value)
