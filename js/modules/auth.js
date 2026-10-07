@@ -27,7 +27,7 @@ import { qs } from "./utils.js";
  * houver usuário autenticado. Chame no topo do script de cada
  * página em /pages, e use o callback para popular a UI com o
  * usuário já carregado.
- * @param {(user: import('firebase/auth').User) => void} aoAutenticar
+ * @param {(user: object) => void} aoAutenticar
  */
 export function exigirAutenticacao(aoAutenticar) {
   observarAuth((user) => {
@@ -89,7 +89,7 @@ export function inicializarPaginaDeLogin() {
       await comLoader(enviarResetSenha(email));
       showToast("Enviamos um link de redefinição para seu e-mail.", "success");
     } catch (err) {
-      showToast(mensagemDeErroAuth(err.code), "error");
+      showToast(mensagemDeErroAuth(err), "error");
     }
   });
 
@@ -98,8 +98,8 @@ export function inicializarPaginaDeLogin() {
       await comLoader(loginComGoogle());
       window.location.href = "pages/dashboard.html";
     } catch (err) {
-      if (err.code !== "auth/popup-closed-by-user") {
-        showToast(mensagemDeErroAuth(err.code), "error");
+      if (err?.message !== "Auth flow cancelled") {
+        showToast(mensagemDeErroAuth(err), "error");
       }
     }
   });
@@ -121,7 +121,7 @@ form?.addEventListener("submit", async (e) => {
 
     window.location.href = "pages/dashboard.html";
   } catch (err) {
-    showToast(mensagemDeErroAuth(err.code), "error");
+    showToast(mensagemDeErroAuth(err), "error");
   }
 });
 
