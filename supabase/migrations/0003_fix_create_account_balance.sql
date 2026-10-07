@@ -1,7 +1,9 @@
 -- FinScore / Supabase
 -- Garante persistência consistente do saldo inicial.
 
-create or replace function public.create_account(
+drop function if exists public.create_account(text, public.account_type, bigint, date, boolean);
+
+create function public.create_account(
   p_name text,
   p_type public.account_type,
   p_opening_cents bigint default 0,
