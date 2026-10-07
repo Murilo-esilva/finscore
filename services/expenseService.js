@@ -1,6 +1,27 @@
 import { exigirSupabase } from "../src/core/supabase/client.js";
 import { listarContas, formatarSaldo, rotuloTipoConta } from "./accountService.js";
 
+const normalizarCategorias = (data = []) => {
+  const unicas = new Map();
+
+  for (const categoria of data) {
+    const chave = `${categoria.nature}:${String(categoria.name || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim()
+      .toLowerCase()}`;
+
+    const existente = unicas.get(chave);
+    if (!existente || (categoria.is_system && !existente.is_system)) {
+      unicas.set(chave, categoria);
+    }
+  }
+
+  return [...unicas.values()].sort((a, b) =>
+    String(a.name).localeCompare(String(b.name), "pt-BR")
+  );
+};
+
 export async function listarCategorias() {
   const client = exigirSupabase();
 
@@ -15,25 +36,7 @@ export async function listarCategorias() {
     .order("name", { ascending: true });
 
   if (error) throw error;
-
-  const unicas = new Map();
-
-  for (const categoria of data || []) {
-    const chave = `${categoria.nature}:${String(categoria.name || "")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .trim()
-      .toLowerCase()}`;
-
-    const existente = unicas.get(chave);
-    if (!existente || (categoria.is_system && !existente.is_system)) {
-      unicas.set(chave, categoria);
-    }
-  }
-
-  return [...unicas.values()].sort(
-    (a, b) => String(a.name).localeCompare(String(b.name), "pt-BR")
-  );
+  return normalizarCategorias(data || []);
 }
 
 export async function listarLancamentos({ limite = 100 } = {}) {
@@ -44,6 +47,42 @@ export async function listarLancamentos({ limite = 100 } = {}) {
     .neq("kind", "opening_balance")
     .order("occurred_on", { ascending: false })
     .order("created_at", { ascending: false })
+    .limit(limite);
+
+  if (error) throw error;
+
+  const [contas, categorias] = await Promise.all([
+    listarContas(),
+    listarCategorias(),
+  ]);
+
+  const contasPorId = new Map(contas.map((conta) => [conta.id, conta]));
+  const categoriasPorId = new Map(categorias.map((categoria) => [categoria.id, categoria]));
+
+  return (data || []).map((item) => ({
+    ...item,
+    amount_cents: Number(item.amount_cents || 0),
+    conta: contasPorId.get(item.account_id) || null,
+    categoria: categoriasPorId.get(item.category_id) || null,
+  }));
+}
+
+export async function listarLancamentosFuturos({ limite = 100 } = {}) {
+  const client = exigirSupabase();
+
+  const { error: materializeError } = await client.rpc("materialize_my_recurrences");
+  if (materializeError) throw materializeError;
+
+  const hoje = new Date();
+  const hojeISO = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}-${String(hoje.getDate()).padStart(2, "0")}`;
+
+  const { data, error } = await client
+    .from("commitments")
+    .select("id,account_id,category_id,kind,status,amount_cents,due_on,description,recurrence_rule_id,created_at")
+    .in("status", ["planned", "confirmed"])
+    .gte("due_on", hojeISO)
+    .order("due_on", { ascending: true })
+    .order("created_at", { ascending: true })
     .limit(limite);
 
   if (error) throw error;
@@ -97,6 +136,30 @@ export async function criarLancamento({
     p_budget_on: occurred_on,
     p_description: description,
     p_category_id: category_id || null,
+  });
+
+  if (error) throw error;
+  return data;
+}
+
+export async function criarLancamentoFuturo({
+  account_id,
+  category_id,
+  type,
+  amount_cents,
+  due_on,
+  description,
+}) {
+  const client = exigirSupabase();
+  const kind = type === "income" ? "income" : "expense";
+
+  const { data, error } = await client.rpc("create_commitment", {
+    p_account_id: account_id || null,
+    p_category_id: category_id || null,
+    p_kind: kind,
+    p_amount_cents: Math.abs(Number(amount_cents)),
+    p_due_on: due_on,
+    p_description: description,
   });
 
   if (error) throw error;
