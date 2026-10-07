@@ -1,14 +1,5 @@
 import { exigirSupabase } from "../src/core/supabase/client.js";
 
-export async function loginComGoogle() {
-  const client = exigirSupabase();
-  const { error } = await client.auth.signInWithOAuth({
-    provider: "google",
-    options: { redirectTo: window.location.origin + "/finscore/pages/dashboard.html" },
-  });
-  if (error) throw error;
-}
-
 export async function loginComEmailSenha(email, senha) {
   const client = exigirSupabase();
   const { data, error } = await client.auth.signInWithPassword({ email, password: senha });
