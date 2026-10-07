@@ -3,11 +3,7 @@ import { exigirSupabase } from "../src/core/supabase/client.js";
 export async function listarContas() {
   const client = exigirSupabase();
 
-  const { data, error } = await client
-    .from("accounts")
-    .select("id,name,type,status,opening_cents")
-    .eq("status", "active")
-    .order("name");
+  const { data, error } = await client.rpc("list_my_accounts");
 
   if (error) throw error;
   return data || [];
