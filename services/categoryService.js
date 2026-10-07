@@ -82,3 +82,14 @@ export async function arquivarCategoria(id) {
   if (error) throw error;
   return data;
 }
+
+export async function excluirCategoria(id) {
+  const client = exigirSupabase();
+
+  const { data, error } = await client.rpc("delete_category", {
+    p_id: id,
+  });
+
+  if (error) throw error;
+  return data;
+}
