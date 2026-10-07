@@ -6,7 +6,11 @@ export async function listarContas() {
   const { data, error } = await client.rpc("list_my_accounts");
 
   if (error) throw error;
-  return data || [];
+
+  return (data || []).map((conta) => ({
+    ...conta,
+    opening_balance_cents: Number(conta.opening_balance_cents ?? 0),
+  }));
 }
 
 export async function criarConta({
