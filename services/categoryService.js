@@ -3,6 +3,11 @@ import { exigirSupabase } from "../src/core/supabase/client.js";
 export async function listarCategorias({ incluirArquivadas = false } = {}) {
   const client = exigirSupabase();
 
+  if (!incluirArquivadas) {
+    const { error: bootstrapError } = await client.rpc("ensure_default_categories");
+    if (bootstrapError) throw bootstrapError;
+  }
+
   let query = client
     .from("categories")
     .select("id,user_id,name,nature,parent_id,is_essential,is_system,archived_at,created_at,updated_at")
