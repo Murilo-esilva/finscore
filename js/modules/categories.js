@@ -3,7 +3,8 @@ import {
   criarCategoria,
   atualizarCategoria,
   arquivarCategoria,
-} from "../../services/categoryService.js?v=20261007-category2";
+  excluirCategoria,
+} from "../../services/categoryService.js?v=20261007-category3";
 
 const esc = (value = "") =>
   String(value)
@@ -92,8 +93,8 @@ function renderizarCategorias(categorias) {
               <button type="button" class="fs-btn fs-btn-secondary fs-btn-edit-category" data-id="${esc(categoria.id)}" style="padding:7px 9px;" title="Editar">
                 <i data-lucide="pencil" class="w-4 h-4"></i>
               </button>
-              <button type="button" class="fs-btn fs-btn-secondary fs-btn-archive-category" data-id="${esc(categoria.id)}" style="padding:7px 9px;" title="Arquivar">
-                <i data-lucide="archive" class="w-4 h-4"></i>
+              <button type="button" class="fs-btn fs-btn-secondary fs-btn-delete-category" data-id="${esc(categoria.id)}" style="padding:7px 9px;" title="Excluir">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
               </button>
             </div>`}
         </div>
@@ -109,19 +110,29 @@ function renderizarCategorias(categorias) {
     });
   });
 
-  lista.querySelectorAll(".fs-btn-archive-category").forEach((btn) => {
+  lista.querySelectorAll(".fs-btn-delete-category").forEach((btn) => {
     btn.addEventListener("click", async () => {
-      if (!window.confirm("Arquivar esta categoria? Os lançamentos históricos continuarão preservados.")) return;
+      const categoria = categorias.find((item) => item.id === btn.dataset.id);
+      if (!categoria) return;
+
+      const confirmou = window.confirm(
+        `Excluir a categoria "${categoria.name}"? Se ela já tiver histórico financeiro, o FinScore vai arquivá-la para preservar os registros.`
+      );
+
+      if (!confirmou) return;
+      btn.disabled = true;
 
       try {
-        await arquivarCategoria(btn.dataset.id);
+        await excluirCategoria(btn.dataset.id);
         await carregarCategorias();
       } catch (error) {
         const erro = document.getElementById("fs-categorias-erro");
         if (erro) {
           erro.hidden = false;
-          erro.textContent = error?.message || "Não foi possível arquivar a categoria.";
+          erro.textContent = error?.message || "Não foi possível excluir a categoria.";
         }
+      } finally {
+        btn.disabled = false;
       }
     });
   });
