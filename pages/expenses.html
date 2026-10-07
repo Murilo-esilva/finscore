@@ -57,7 +57,29 @@
       </article>
     </section>
 
-    <section class="fs-surface fs-animate-in" style="overflow:hidden;">
+    <section class="fs-surface fs-animate-in" style="padding:16px 18px;margin-bottom:16px;">
+  <div style="display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:10px;" class="sm:grid-cols-2 xl:grid-cols-5">
+    <input id="fs-filtro-busca" class="fs-input" placeholder="Buscar descrição..." />
+    <select id="fs-filtro-tipo" class="fs-input">
+      <option value="">Todos os tipos</option>
+      <option value="expense">Despesas</option>
+      <option value="income">Receitas</option>
+    </select>
+    <select id="fs-filtro-conta" class="fs-input">
+      <option value="">Todas as contas</option>
+    </select>
+    <select id="fs-filtro-categoria" class="fs-input">
+      <option value="">Todas as categorias</option>
+    </select>
+    <select id="fs-filtro-periodo" class="fs-input">
+      <option value="all">Todo o histórico</option>
+      <option value="month">Este mês</option>
+      <option value="3m">Últimos 3 meses</option>
+    </select>
+  </div>
+</section>
+
+<section class="fs-surface fs-animate-in" style="overflow:hidden;">
       <div style="padding:18px 20px;border-bottom:1px solid var(--fs-border);display:flex;align-items:center;justify-content:space-between;gap:16px;">
         <div>
           <h2 style="font-size:1rem;font-weight:700;">Histórico</h2>
@@ -74,6 +96,7 @@
               <th style="padding:12px 14px;font-size:.68rem;color:var(--fs-text-muted);font-weight:600;">Descrição</th>
               <th style="padding:12px 14px;font-size:.68rem;color:var(--fs-text-muted);font-weight:600;">Tipo / categoria</th>
               <th style="padding:12px 14px;font-size:.68rem;color:var(--fs-text-muted);font-weight:600;text-align:right;">Valor</th>
+              <th style="padding:12px 14px;font-size:.68rem;color:var(--fs-text-muted);font-weight:600;text-align:right;">Ações</th>
             </tr>
           </thead>
           <tbody id="fs-lancamentos-lista"></tbody>
@@ -159,7 +182,7 @@
   </div>
 
   <script type="module">
-    import { iniciarPagina } from '../js/app.js?v=20261007-expenses3';
+    import { iniciarPagina } from '../js/app.js?v=20261007-expenses4';
     import { inicializarLancamentos, configurarFormularioLancamento } from '../js/modules/expenses.js?v=20261007-expenses2';
 
     iniciarPagina('expenses', () => {
