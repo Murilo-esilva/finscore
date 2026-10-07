@@ -9,7 +9,7 @@ import {
   atualizarRecorrencia,
   encerrarRecorrencia,
   rotuloTipoConta,
-} from "../../services/planningService.js?v=20261007-planning5";
+} from "../../services/planningService.js?v=20261007-planning6";
 import { listarContas } from "../../services/accountService.js";
 
 const moeda = (cents) =>
