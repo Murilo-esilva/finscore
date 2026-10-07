@@ -20,7 +20,28 @@ export async function listarCategorias({ incluirArquivadas = false } = {}) {
 
   const { data, error } = await query;
   if (error) throw error;
-  return data || [];
+
+  const unicas = new Map();
+  for (const categoria of data || []) {
+    const chave = `${categoria.nature}:${String(categoria.name || "")
+      .normalize("NFD")
+      .replace(/[\\u0300-\\u036f]/g, "")
+      .trim()
+      .toLowerCase()}`;
+
+    const existente = unicas.get(chave);
+    if (
+      !existente ||
+      (categoria.is_system && !existente.is_system)
+    ) {
+      unicas.set(chave, categoria);
+    }
+  }
+
+  return [...unicas.values()].sort((a, b) => {
+    if (a.nature !== b.nature) return a.nature.localeCompare(b.nature);
+    return String(a.name).localeCompare(String(b.name), "pt-BR");
+  });
 }
 
 export async function criarCategoria({ name, nature, is_essential = false, parent_id = null }) {
