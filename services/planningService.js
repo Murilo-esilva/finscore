@@ -89,8 +89,9 @@ export async function listarRecorrencias() {
 
   const { data: commitments, error: commitmentsError } = await client
     .from("commitments")
-    .select("recurrence_rule_id,description,amount_cents,kind,account_id,category_id")
+    .select("recurrence_rule_id,description,amount_cents,kind,account_id,category_id,status")
     .in("recurrence_rule_id", ids)
+    .in("status", ["planned", "confirmed"])
     .order("occurrence_on", { ascending: true });
 
   if (commitmentsError) throw commitmentsError;
