@@ -11,17 +11,88 @@
 </head>
 <body><div id="sidebar-root"></div><div id="navbar-root" class="lg:pl-[var(--fs-sidebar-w)]"></div>
 <main class="lg:pl-[var(--fs-sidebar-w)] p-5 lg:p-8" style="max-width:1400px;margin:0 auto;">
-<section class="fs-animate-in" style="margin-bottom:24px"><p style="font-size:.78rem;color:var(--fs-text-muted);margin-bottom:5px">VISÃO FINANCEIRA</p><h1 class="fs-display" style="font-size:1.75rem;font-weight:700">Olá, <span id="fs-nome-usuario">—</span></h1><p style="color:var(--fs-text-muted);font-size:.9rem;margin-top:5px">Uma visão simples do que você tem, do que já comprometeu e do que vem pela frente.</p></section>
+<section class="fs-animate-in" style="margin-bottom:24px">
+  <p style="font-size:.78rem;color:var(--fs-text-muted);margin-bottom:5px">VISÃO FINANCEIRA</p>
+  <h1 class="fs-display" style="font-size:1.75rem;font-weight:700">Olá, <span id="fs-nome-usuario">—</span></h1>
+  <p style="color:var(--fs-text-muted);font-size:.9rem;margin-top:5px">Uma visão simples do que você tem, do que já comprometeu e do que vem pela frente.</p>
+</section>
+
+<div id="fs-dashboard-erro" hidden style="margin-bottom:20px;padding:12px 14px;border:1px solid var(--fs-border);border-radius:12px;background:var(--fs-surface-2);color:var(--fs-text-muted);font-size:.78rem;"></div>
+
 <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4" style="margin-bottom:20px">
-<article class="fs-surface fs-animate-in" style="padding:20px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><span style="font-size:.78rem;color:var(--fs-text-muted)">Saldo disponível</span><i data-lucide="wallet" class="w-4 h-4" style="color:var(--fs-indigo)"></i></div><strong id="kpi-saldo" class="fs-mono" style="font-size:1.45rem">R$ 0,00</strong><p style="font-size:.72rem;color:var(--fs-text-muted);margin-top:7px">Contas incluídas no caixa</p></article><article class="fs-surface fs-animate-in" style="padding:20px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><span style="font-size:.78rem;color:var(--fs-text-muted)">Receitas do mês</span><i data-lucide="trending-up" class="w-4 h-4" style="color:var(--fs-teal)"></i></div><strong  class="fs-mono" style="font-size:1.45rem">R$ 0,00</strong><p style="font-size:.72rem;color:var(--fs-text-muted);margin-top:7px">Entradas realizadas</p></article><article class="fs-surface fs-animate-in" style="padding:20px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><span style="font-size:.78rem;color:var(--fs-text-muted)">Despesas do mês</span><i data-lucide="trending-down" class="w-4 h-4" style="color:var(--fs-rose)"></i></div><strong  class="fs-mono" style="font-size:1.45rem">R$ 0,00</strong><p style="font-size:.72rem;color:var(--fs-text-muted);margin-top:7px">Saídas realizadas</p></article><article class="fs-surface fs-animate-in" style="padding:20px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><span style="font-size:.78rem;color:var(--fs-text-muted)">Comprometido</span><i data-lucide="calendar-clock" class="w-4 h-4" style="color:var(--fs-amber)"></i></div><strong  class="fs-mono" style="font-size:1.45rem">R$ 0,00</strong><p style="font-size:.72rem;color:var(--fs-text-muted);margin-top:7px">Próximos compromissos</p></article>
+  <article class="fs-surface fs-animate-in" style="padding:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><span style="font-size:.78rem;color:var(--fs-text-muted)">Saldo disponível</span><i data-lucide="wallet" class="w-4 h-4" style="color:var(--fs-indigo)"></i></div>
+    <strong id="kpi-saldo" class="fs-mono" style="font-size:1.45rem">—</strong>
+    <p style="font-size:.72rem;color:var(--fs-text-muted);margin-top:7px">Contas incluídas no caixa</p>
+  </article>
+  <article class="fs-surface fs-animate-in" style="padding:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><span style="font-size:.78rem;color:var(--fs-text-muted)">Receitas do mês</span><i data-lucide="trending-up" class="w-4 h-4" style="color:var(--fs-teal)"></i></div>
+    <strong id="kpi-receitas" class="fs-mono" style="font-size:1.45rem">—</strong>
+    <p style="font-size:.72rem;color:var(--fs-text-muted);margin-top:7px">Entradas realizadas</p>
+  </article>
+  <article class="fs-surface fs-animate-in" style="padding:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><span style="font-size:.78rem;color:var(--fs-text-muted)">Despesas do mês</span><i data-lucide="trending-down" class="w-4 h-4" style="color:var(--fs-rose)"></i></div>
+    <strong id="kpi-despesas" class="fs-mono" style="font-size:1.45rem">—</strong>
+    <p style="font-size:.72rem;color:var(--fs-text-muted);margin-top:7px">Saídas realizadas</p>
+  </article>
+  <article class="fs-surface fs-animate-in" style="padding:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><span style="font-size:.78rem;color:var(--fs-text-muted)">Comprometido</span><i data-lucide="calendar-clock" class="w-4 h-4" style="color:var(--fs-amber)"></i></div>
+    <strong id="kpi-comprometido" class="fs-mono" style="font-size:1.45rem">—</strong>
+    <p style="font-size:.72rem;color:var(--fs-text-muted);margin-top:7px">Próximos compromissos</p>
+  </article>
 </section>
+
 <section class="grid grid-cols-1 xl:grid-cols-3 gap-5">
-<article class="fs-surface fs-animate-in xl:col-span-2" style="padding:24px"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px"><div><h2 style="font-size:1rem;font-weight:700">Fluxo do mês</h2><p style="font-size:.78rem;color:var(--fs-text-muted);margin-top:3px">Realizado x planejado</p></div><span class="fs-btn fs-btn-secondary" style="padding:7px 10px;font-size:.75rem">Este mês</span></div><div style="height:230px;display:flex;align-items:flex-end;gap:10px;border-bottom:1px solid var(--fs-border);padding:0 8px"><div style="flex:1;height:35%;min-width:8px;border-radius:7px 7px 0 0;background:var(--fs-indigo)"></div><div style="flex:1;height:52%;min-width:8px;border-radius:7px 7px 0 0;background:var(--fs-teal)"></div><div style="flex:1;height:42%;min-width:8px;border-radius:7px 7px 0 0;background:var(--fs-surface-2)"></div><div style="flex:1;height:68%;min-width:8px;border-radius:7px 7px 0 0;background:var(--fs-indigo)"></div><div style="flex:1;height:56%;min-width:8px;border-radius:7px 7px 0 0;background:var(--fs-teal)"></div><div style="flex:1;height:76%;min-width:8px;border-radius:7px 7px 0 0;background:var(--fs-surface-2)"></div><div style="flex:1;height:61%;min-width:8px;border-radius:7px 7px 0 0;background:var(--fs-indigo)"></div><div style="flex:1;height:86%;min-width:8px;border-radius:7px 7px 0 0;background:var(--fs-teal)"></div><div style="flex:1;height:72%;min-width:8px;border-radius:7px 7px 0 0;background:var(--fs-surface-2)"></div><div style="flex:1;height:93%;min-width:8px;border-radius:7px 7px 0 0;background:var(--fs-indigo)"></div><div style="flex:1;height:79%;min-width:8px;border-radius:7px 7px 0 0;background:var(--fs-teal)"></div><div style="flex:1;height:100%;min-width:8px;border-radius:7px 7px 0 0;background:var(--fs-surface-2)"></div></div><div style="display:flex;justify-content:space-between;padding-top:10px;font-size:.68rem;color:var(--fs-text-muted)"><span>1</span><span>5</span><span>10</span><span>15</span><span>20</span><span>25</span><span>31</span></div></article>
-<article class="fs-surface fs-animate-in" style="padding:24px"><h2 style="font-size:1rem;font-weight:700">Próximos compromissos</h2><p style="font-size:.78rem;color:var(--fs-text-muted);margin-top:3px;margin-bottom:18px">O que já está previsto</p><div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:190px;text-align:center"><div class="fs-empty-icon"><i data-lucide="calendar-check" class="w-6 h-6"></i></div><p style="font-size:.84rem;font-weight:600;margin-top:12px">Nada comprometido ainda</p><p style="font-size:.75rem;color:var(--fs-text-muted);max-width:220px;margin-top:4px">Cadastre contas e compromissos para acompanhar o que vem pela frente.</p></div></article>
+  <article class="fs-surface fs-animate-in xl:col-span-2" style="padding:24px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+      <div><h2 style="font-size:1rem;font-weight:700">Fluxo do mês</h2><p id="fs-fluxo-legenda" style="font-size:.78rem;color:var(--fs-text-muted);margin-top:3px">Carregando movimentos...</p></div>
+      <span class="fs-btn fs-btn-secondary" style="padding:7px 10px;font-size:.75rem">Este mês</span>
+    </div>
+    <div id="fs-fluxo-chart" style="height:230px;display:flex;align-items:flex-end;gap:3px;border-bottom:1px solid var(--fs-border);padding:0 8px"></div>
+    <div id="fs-fluxo-labels" style="display:flex;justify-content:space-between;padding-top:10px;font-size:.68rem;color:var(--fs-text-muted)"></div>
+  </article>
+
+  <article class="fs-surface fs-animate-in" style="padding:24px">
+    <h2 style="font-size:1rem;font-weight:700">Próximos compromissos</h2>
+    <p style="font-size:.78rem;color:var(--fs-text-muted);margin-top:3px;margin-bottom:18px">O que já está previsto</p>
+    <div id="fs-dashboard-compromissos"></div>
+  </article>
 </section>
+
 <section class="grid grid-cols-1 lg:grid-cols-2 gap-5" style="margin-top:20px">
-<article class="fs-surface fs-animate-in" style="padding:24px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px"><div><h2 style="font-size:1rem;font-weight:700">Contas</h2><p style="font-size:.78rem;color:var(--fs-text-muted);margin-top:3px">Onde seu dinheiro está</p></div><a href="accounts.html" style="font-size:.78rem;color:var(--fs-indigo);font-weight:600">Gerenciar</a></div><div style="display:flex;align-items:center;justify-content:center;min-height:125px"><p style="font-size:.82rem;color:var(--fs-text-muted)">Nenhuma conta cadastrada.</p></div></article>
-<article class="fs-surface fs-animate-in" style="padding:24px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px"><div><h2 style="font-size:1rem;font-weight:700">Previsão</h2><p style="font-size:.78rem;color:var(--fs-text-muted);margin-top:3px">Onde você pode chegar</p></div><i data-lucide="line-chart" class="w-5 h-5" style="color:var(--fs-indigo)"></i></div><div style="min-height:125px;display:flex;align-items:center"><div><strong class="fs-mono" style="font-size:1.35rem">R$ 0,00</strong><p style="font-size:.78rem;color:var(--fs-text-muted);margin-top:5px">Sem dados suficientes para projetar o período.</p></div></div></article>
-</section></main>
-<script type="module">import{iniciarPagina}from'../js/app.js';iniciarPagina('dashboard',user=>{document.getElementById('fs-nome-usuario').textContent=(user.user_metadata?.display_name||user.email||'').split(' ')[0]||'usuário';if(window.lucide)window.lucide.createIcons()});</script>
+  <article class="fs-surface fs-animate-in" style="padding:24px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <div><h2 style="font-size:1rem;font-weight:700">Contas</h2><p style="font-size:.78rem;color:var(--fs-text-muted);margin-top:3px">Onde seu dinheiro está</p></div>
+      <a href="accounts.html" style="font-size:.78rem;color:var(--fs-indigo);font-weight:600">Gerenciar</a>
+    </div>
+    <div id="fs-dashboard-contas"></div>
+  </article>
+
+  <article class="fs-surface fs-animate-in" style="padding:24px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <div><h2 style="font-size:1rem;font-weight:700">Previsão</h2><p style="font-size:.78rem;color:var(--fs-text-muted);margin-top:3px">Onde você pode chegar</p></div>
+      <i data-lucide="line-chart" class="w-5 h-5" style="color:var(--fs-indigo)"></i>
+    </div>
+    <div style="min-height:125px;display:flex;align-items:center">
+      <div>
+        <strong id="kpi-previsao" class="fs-mono" style="font-size:1.35rem">—</strong>
+        <p id="fs-previsao-texto" style="font-size:.78rem;color:var(--fs-text-muted);margin-top:5px">Calculando com os lançamentos futuros cadastrados.</p>
+      </div>
+    </div>
+  </article>
+</section>
+</main>
+
+<script type="module">
+import{iniciarPagina}from'../js/app.js?v=20261007-dashboard1';
+import{inicializarDashboard}from'../js/modules/dashboard.js?v=20261007-dashboard1';
+
+iniciarPagina('dashboard', user => {
+  document.getElementById('fs-nome-usuario').textContent =
+    (user.user_metadata?.display_name || user.email || '').split(' ')[0] || 'usuário';
+
+  if (window.lucide) window.lucide.createIcons();
+  inicializarDashboard();
+});
+</script>
 </body></html>
