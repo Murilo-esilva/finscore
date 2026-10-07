@@ -1,7 +1,10 @@
 -- FinScore / Supabase
--- Cria lançamentos financeiros via RPC, mantendo as mutações protegidas no banco.
+-- Cria lançamentos financeiros via RPC.
+-- Despesas exigem category_id e budget_on, conforme transactions_expense_check.
 
-drop function if exists public.create_transaction(uuid, public.transaction_kind, public.entry_direction, bigint, date, date, text);
+drop function if exists public.create_transaction(
+  uuid, public.transaction_kind, public.entry_direction, bigint, date, date, text
+);
 
 create function public.create_transaction(
   p_account_id uuid,
@@ -10,7 +13,8 @@ create function public.create_transaction(
   p_amount_cents bigint,
   p_occurred_on date,
   p_budget_on date default null,
-  p_description text default ''
+  p_description text default '',
+  p_category_id uuid default null
 )
 returns public.transactions
 language plpgsql
@@ -45,6 +49,10 @@ begin
     raise exception 'opening_balance_is_system_generated';
   end if;
 
+  if p_kind = 'expense'::public.transaction_kind and p_category_id is null then
+    raise exception 'category_required_for_expense';
+  end if;
+
   if not exists (
     select 1
       from public.accounts a
@@ -62,6 +70,7 @@ begin
   insert into public.transactions (
     user_id,
     account_id,
+    category_id,
     kind,
     direction,
     amount_cents,
@@ -72,11 +81,15 @@ begin
   values (
     v_user_id,
     p_account_id,
+    p_category_id,
     p_kind,
     p_direction,
     p_amount_cents,
     p_occurred_on,
-    coalesce(p_budget_on, p_occurred_on),
+    case
+      when p_kind = 'expense'::public.transaction_kind then coalesce(p_budget_on, p_occurred_on)
+      else p_budget_on
+    end,
     trim(p_description)
   )
   returning * into v_transaction;
@@ -86,13 +99,11 @@ end;
 $$;
 
 revoke all on function public.create_transaction(
-  uuid, public.transaction_kind, public.entry_direction, bigint, date, date, text
+  uuid, public.transaction_kind, public.entry_direction, bigint, date, date, text, uuid
 ) from public;
 
 grant execute on function public.create_transaction(
-  uuid, public.transaction_kind, public.entry_direction, bigint, date, date, text
+  uuid, public.transaction_kind, public.entry_direction, bigint, date, date, text, uuid
 ) to authenticated;
 
-
--- Atualiza o schema cache do PostgREST após a criação/alteração da RPC.
 notify pgrst, 'reload schema';
