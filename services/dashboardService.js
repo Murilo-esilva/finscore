@@ -22,17 +22,6 @@ function somarPorDirecao(transacoes, direcao) {
     .reduce((total, item) => total + Number(item.amount_cents || 0), 0);
 }
 
-function ehMovimentoFinanceiro(item) {
-  if (item.kind === "opening_balance") return false;
-  if (item.kind === "transfer") return false;
-  if (item.transfer_id) return false;
-  return true;
-}
-
-function dataPlanejamento(item) {
-  return item.budget_on || item.occurred_on;
-}
-
 export async function obterResumoDashboard() {
   const client = exigirSupabase();
   const contas = await listarContas();
@@ -41,52 +30,66 @@ export async function obterResumoDashboard() {
   const hojeISO = dataLocalISO(hoje);
   const inicioISO = dataLocalISO(inicioDoMes(hoje));
   const fimISO = dataLocalISO(fimDoMes(hoje));
+  const limite30 = new Date(hoje);
+  limite30.setDate(limite30.getDate() + 30);
+  const limite30ISO = dataLocalISO(limite30);
 
-  const { data: transacoes, error } = await client
-    .from("transactions")
-    .select(
-      "id,account_id,kind,direction,amount_cents,occurred_on,budget_on,description,transfer_id"
-    )
-    .gte("occurred_on", inicioISO)
-    .order("occurred_on", { ascending: true });
+  const [{ data: transacoes, error: transacoesError }, { data: compromissos, error: compromissosError }] =
+    await Promise.all([
+      client
+        .from("transactions")
+        .select("id,account_id,kind,direction,amount_cents,occurred_on,budget_on,description,transfer_id")
+        .lte("occurred_on", hojeISO)
+        .order("occurred_on", { ascending: true }),
+      client
+        .from("commitments")
+        .select("id,account_id,category_id,kind,status,amount_cents,due_on,description")
+        .in("status", ["planned", "confirmed"])
+        .gte("due_on", hojeISO)
+        .order("due_on", { ascending: true }),
+    ]);
 
-  if (error) throw error;
+  if (transacoesError) throw transacoesError;
+  if (compromissosError) throw compromissosError;
 
-  const movimentos = (transacoes || []).filter(ehMovimentoFinanceiro);
-
-  const saldoDisponivelCents = contas
-    .filter((conta) => conta.include_in_cash !== false)
-    .reduce((total, conta) => total + Number(conta.balance_cents || 0), 0);
-
-  const realizadosDoMes = movimentos.filter(
+  const realizados = (transacoes || []).filter(
     (item) =>
-      item.occurred_on >= inicioISO &&
-      item.occurred_on <= fimISO
+      item.kind !== "opening_balance" &&
+      item.kind !== "transfer" &&
+      !item.transfer_id
+  );
+
+  const realizadosDoMes = realizados.filter(
+    (item) => item.occurred_on >= inicioISO && item.occurred_on <= fimISO
   );
 
   const receitasMesCents = somarPorDirecao(realizadosDoMes, "credit");
   const despesasMesCents = somarPorDirecao(realizadosDoMes, "debit");
 
-  const compromissos = movimentos
-    .filter((item) => dataPlanejamento(item) > hojeISO && item.direction === "debit")
-    .sort((a, b) => dataPlanejamento(a).localeCompare(dataPlanejamento(b)));
-
-  const comprometidoCents = compromissos.reduce(
-    (total, item) => total + Number(item.amount_cents || 0),
-    0
+  const compromissosFuturos = (compromissos || []).filter(
+    (item) => item.due_on > hojeISO
   );
 
-  const fimDoProximo30Dias = new Date(hoje);
-  fimDoProximo30Dias.setDate(fimDoProximo30Dias.getDate() + 30);
-  const limitePrevisaoISO = dataLocalISO(fimDoProximo30Dias);
+  const comprometidoCents = compromissosFuturos
+    .filter((item) => item.kind === "expense")
+    .reduce((total, item) => total + Number(item.amount_cents || 0), 0);
 
-  const futuros30Dias = movimentos.filter((item) => {
-    const data = dataPlanejamento(item);
-    return data > hojeISO && data <= limitePrevisaoISO;
-  });
+  const compromissos30Dias = compromissosFuturos.filter(
+    (item) => item.due_on <= limite30ISO
+  );
 
-  const entradasFuturasCents = somarPorDirecao(futuros30Dias, "credit");
-  const saidasFuturasCents = somarPorDirecao(futuros30Dias, "debit");
+  const entradasFuturasCents = compromissos30Dias
+    .filter((item) => item.kind === "income")
+    .reduce((total, item) => total + Number(item.amount_cents || 0), 0);
+
+  const saidasFuturasCents = compromissos30Dias
+    .filter((item) => item.kind === "expense")
+    .reduce((total, item) => total + Number(item.amount_cents || 0), 0);
+
+  const saldoDisponivelCents = contas
+    .filter((conta) => conta.include_in_cash !== false)
+    .reduce((total, conta) => total + Number(conta.balance_cents || 0), 0);
+
   const previsao30DiasCents =
     saldoDisponivelCents + entradasFuturasCents - saidasFuturasCents;
 
@@ -100,11 +103,8 @@ export async function obterResumoDashboard() {
     const acumulado = porDia.get(dia);
     const amount = Number(item.amount_cents || 0);
 
-    if (item.direction === "credit") {
-      acumulado.income += amount;
-    } else if (item.direction === "debit") {
-      acumulado.expense += amount;
-    }
+    if (item.direction === "credit") acumulado.income += amount;
+    if (item.direction === "debit") acumulado.expense += amount;
   }
 
   const diasDoMes = fimDoMes(hoje).getDate();
@@ -120,7 +120,7 @@ export async function obterResumoDashboard() {
     receitasMesCents,
     despesasMesCents,
     comprometidoCents,
-    compromissos: compromissos.slice(0, 5),
+    compromissos: compromissosFuturos.slice(0, 5),
     previsao30DiasCents,
     fluxo,
     formatarSaldo,
