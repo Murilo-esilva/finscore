@@ -42,6 +42,17 @@ export async function listarLancamentos({ limite = 100 } = {}) {
   }));
 }
 
+export async function reverterLancamento(id) {
+  const client = exigirSupabase();
+
+  const { data, error } = await client.rpc("reverse_transaction", {
+    p_transaction_id: id,
+  });
+
+  if (error) throw error;
+  return data;
+}
+
 export async function criarLancamento({
   account_id,
   category_id,
