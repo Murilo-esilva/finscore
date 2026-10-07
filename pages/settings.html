@@ -30,7 +30,7 @@
     <div style="margin-bottom:24px;" class="fs-animate-in">
       <h1 class="fs-display" style="font-size:1.6rem; font-weight:700;">Configurações</h1>
       <p style="color:var(--fs-text-muted); font-size:0.9rem; margin-top:4px;">
-        Tema, moeda, idioma, metas e categorias.
+        Tema, moeda, idioma e categorias.
       </p>
     </div>
 
@@ -49,13 +49,27 @@
       </div>
     </div>
 
+    <div class="fs-surface fs-animate-in" style="padding:24px; margin-bottom:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:18px;">
+        <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+          <div style="width:40px;height:40px;border-radius:11px;background:var(--fs-surface-2);display:grid;place-items:center;flex-shrink:0;">
+            <i data-lucide="tags" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <p style="font-size:.85rem;font-weight:600;">Categorias</p>
+            <p style="font-size:.78rem;color:var(--fs-text-muted);margin-top:3px;">Organize categorias de receitas e despesas usadas nos lançamentos.</p>
+          </div>
+        </div>
+        <a href="categories.html" class="fs-btn fs-btn-secondary" style="white-space:nowrap;">Gerenciar</a>
+      </div>
+    </div>
+
     <div class="fs-surface fs-animate-in" style="padding:24px;">
       <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px 16px; gap:12px;">
         <div class="fs-empty-icon"><i data-lucide="settings-2" class="w-6 h-6"></i></div>
-        <p style="font-weight:600;">Moeda, idioma, metas e categorias chegam em breve</p>
+        <p style="font-weight:600;">Moeda, idioma e outras preferências chegam em breve</p>
         <p style="font-size:0.85rem; color:var(--fs-text-muted); text-align:center; max-width:380px;">
-          Essas preferências serão conectadas ao documento do usuário no Firestore junto com o
-          "Sistema de Metas" do plano de entrega.
+          Essas preferências serão conectadas ao perfil e às tabelas de configuração do Supabase.
         </p>
       </div>
     </div>
