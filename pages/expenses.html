@@ -22,7 +22,7 @@
     })();
   </script>
 </head>
-<body>
+<body data-finscore-build="2026-10-07-expenses-v3">
   <div id="sidebar-root"></div>
   <div id="navbar-root" class="lg:pl-[var(--fs-sidebar-w)]"></div>
 
@@ -112,6 +112,13 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <label style="display:block;">
+            <span style="display:block;font-size:.72rem;color:var(--fs-text-muted);margin-bottom:6px;">Categoria <span style="color:var(--fs-rose)">*</span></span>
+            <select id="fs-lancamento-categoria" required class="fs-input" style="width:100%;display:block!important;visibility:visible!important;">
+              <option value="">Carregando categorias...</option>
+            </select>
+          </label>
+
+          <label style="display:block;">
             <span style="display:block;font-size:.72rem;color:var(--fs-text-muted);margin-bottom:6px;">Tipo</span>
             <select id="fs-lancamento-tipo" required class="fs-input" style="width:100%;">
               <option value="expense">Despesa</option>
@@ -126,12 +133,6 @@
             </select>
           </label>
 
-          <label style="display:block;">
-            <span style="display:block;font-size:.72rem;color:var(--fs-text-muted);margin-bottom:6px;">Categoria</span>
-            <select id="fs-lancamento-categoria" class="fs-input" style="width:100%;">
-              <option value="">Carregando categorias...</option>
-            </select>
-          </label>
 
           <label style="display:block;">
             <span style="display:block;font-size:.72rem;color:var(--fs-text-muted);margin-bottom:6px;">Valor (R$)</span>
@@ -158,7 +159,7 @@
   </div>
 
   <script type="module">
-    import { iniciarPagina } from '../js/app.js?v=20261007-expenses2';
+    import { iniciarPagina } from '../js/app.js?v=20261007-expenses3';
     import { inicializarLancamentos, configurarFormularioLancamento } from '../js/modules/expenses.js?v=20261007-expenses2';
 
     iniciarPagina('expenses', () => {
