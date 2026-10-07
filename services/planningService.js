@@ -3,9 +3,15 @@ import { listarContas, rotuloTipoConta } from "./accountService.js";
 
 export async function listarCategoriasPlanejamento() {
   const client = exigirSupabase();
+
+  const { error: bootstrapError } = await client.rpc("ensure_default_categories");
+  if (bootstrapError) throw bootstrapError;
+
   const { data, error } = await client
     .from("categories")
-    .select("id,name,nature")
+    .select("id,name,nature,is_system,archived_at")
+    .is("archived_at", null)
+    .order("nature", { ascending: true })
     .order("name", { ascending: true });
 
   if (error) throw error;
