@@ -11,7 +11,6 @@
  * ---------------------------------------------------------
  */
 import {
-  loginComGoogle,
   loginComEmailSenha,
   cadastrarComEmailSenha,
   enviarResetSenha,
@@ -58,7 +57,6 @@ export function inicializarPaginaDeLogin() {
   const botaoSubmit = qs("#fs-auth-submit");
   const linkAlternar = qs("#fs-auth-alternar");
   const linkEsqueciSenha = qs("#fs-esqueci-senha");
-  const botaoGoogle = qs("#fs-btn-google");
 
   function atualizarModo() {
     nomeWrapper.style.display = modoCadastro ? "block" : "none";
@@ -90,17 +88,6 @@ export function inicializarPaginaDeLogin() {
       showToast("Enviamos um link de redefinição para seu e-mail.", "success");
     } catch (err) {
       showToast(mensagemDeErroAuth(err), "error");
-    }
-  });
-
-  botaoGoogle?.addEventListener("click", async () => {
-    try {
-      await comLoader(loginComGoogle());
-      window.location.href = "pages/dashboard.html";
-    } catch (err) {
-      if (err?.message !== "Auth flow cancelled") {
-        showToast(mensagemDeErroAuth(err), "error");
-      }
     }
   });
 
