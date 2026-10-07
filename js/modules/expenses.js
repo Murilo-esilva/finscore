@@ -66,22 +66,29 @@ function fecharModal() {
   if (erro) erro.hidden = true;
 }
 
-function renderizarCategoriasSelect(categorias) {
+let categoriasDisponiveis = [];
+
+function atualizarCategoriasPorTipo() {
+  const tipo = document.getElementById("fs-lancamento-tipo")?.value;
   const select = document.getElementById("fs-lancamento-categoria");
   if (!select) return;
 
+  const categorias = categoriasDisponiveis.filter(
+    (categoria) => categoria.nature === tipo
+  );
+
+  select.required = tipo === "expense";
   select.innerHTML = categorias.length
     ? '<option value="">Selecione uma categoria</option>' +
       categorias.map((categoria) =>
         `<option value="${esc(categoria.id)}">${esc(categoria.name)}</option>`
       ).join("")
-    : '<option value="">Nenhuma categoria cadastrada</option>';
+    : `<option value="">Nenhuma categoria de ${tipo === "expense" ? "despesa" : "receita"} cadastrada</option>`;
 }
 
-function atualizarObrigatoriedadeCategoria() {
-  const tipo = document.getElementById("fs-lancamento-tipo")?.value;
-  const select = document.getElementById("fs-lancamento-categoria");
-  if (select) select.required = tipo === "expense";
+function renderizarCategoriasSelect(categorias) {
+  categoriasDisponiveis = categorias || [];
+  atualizarCategoriasPorTipo();
 }
 
 function renderizarContasSelect(contas) {
@@ -164,7 +171,7 @@ export async function inicializarLancamentos() {
 
     renderizarContasSelect(contas);
     renderizarCategoriasSelect(categorias);
-    atualizarObrigatoriedadeCategoria();
+    atualizarCategoriasPorTipo();
     renderizarTabela(lancamentos);
     atualizarResumo(lancamentos);
 
@@ -189,7 +196,7 @@ export function configurarFormularioLancamento() {
 
   form.dataset.configurado = "true";
 
-  document.getElementById("fs-lancamento-tipo")?.addEventListener("change", atualizarObrigatoriedadeCategoria);
+  document.getElementById("fs-lancamento-tipo")?.addEventListener("change", atualizarCategoriasPorTipo);
   document.getElementById("fs-fechar-lancamento")?.addEventListener("click", fecharModal);
   document.getElementById("fs-cancelar-lancamento")?.addEventListener("click", fecharModal);
   document.getElementById("fs-modal-lancamento")?.addEventListener("click", (event) => {
