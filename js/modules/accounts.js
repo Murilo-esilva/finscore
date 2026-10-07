@@ -48,57 +48,20 @@ export async function inicializarContas() {
 }
 
 export function configurarFormularioConta() {
-  if (document.body.dataset.contaModalConfigurado === "true") return;
-  document.body.dataset.contaModalConfigurado = "true";
-
-  const modal = document.getElementById("fs-modal-conta");
   const form = document.getElementById("fs-form-conta");
   const erro = document.getElementById("fs-form-conta-erro");
   const campoNome = document.getElementById("fs-conta-nome");
+  const campoTipo = document.getElementById("fs-conta-tipo");
+  const campoSaldo = document.getElementById("fs-conta-saldo");
   const campoData = document.getElementById("fs-conta-data");
 
-  if (!modal || !form || !erro || !campoNome || !campoData) {
-    console.error("Estrutura do modal de conta não encontrada.");
+  if (!form || !erro || !campoNome || !campoTipo || !campoSaldo || !campoData) {
+    console.error("Estrutura do formulário de conta não encontrada.");
     return;
   }
 
-  const abrir = (event) => {
-    event?.preventDefault();
-    form.reset();
-    erro.hidden = true;
-    campoData.value = new Date().toISOString().slice(0, 10);
-    modal.hidden = false;
-    modal.setAttribute("aria-hidden", "false");
-    modal.style.display = "grid";
-    requestAnimationFrame(() => campoNome.focus());
-  };
-
-  const fechar = (event) => {
-    event?.preventDefault();
-    modal.hidden = false;
-    modal.setAttribute("aria-hidden", "true");
-    modal.style.display = "none";
-    form.reset();
-    erro.hidden = true;
-  };
-
-  document
-    .querySelectorAll("#btn-nova-conta, #btn-nova-conta-2")
-    .forEach((botao) => botao.addEventListener("click", abrir));
-
-  document
-    .querySelectorAll("#fs-fechar-conta, #fs-cancelar-conta")
-    .forEach((botao) => botao.addEventListener("click", fechar));
-
-  modal.addEventListener("click", (event) => {
-    if (event.target === modal) fechar(event);
-  });
-
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && modal.getAttribute("aria-hidden") !== "true") {
-      fechar(event);
-    }
-  });
+  if (form.dataset.configurado === "true") return;
+  form.dataset.configurado = "true";
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -112,14 +75,14 @@ export function configurarFormularioConta() {
     try {
       await criarConta({
         name: campoNome.value.trim(),
-        account_type: document.getElementById("fs-conta-tipo").value,
+        account_type: campoTipo.value,
         opening_balance_cents: Math.round(
-          Number(document.getElementById("fs-conta-saldo").value || 0) * 100
+          Number(campoSaldo.value || 0) * 100
         ),
         opening_balance_on: campoData.value,
       });
 
-      fechar();
+      window.fsFecharModalConta?.();
       await inicializarContas();
     } catch (error) {
       console.error(error);
