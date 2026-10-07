@@ -22,7 +22,7 @@
     })();
   </script>
 </head>
-<body data-finscore-build="2026-10-07-expenses-v3">
+<body data-finscore-build="2026-10-07-expenses-v5">
   <div id="sidebar-root"></div>
   <div id="navbar-root" class="lg:pl-[var(--fs-sidebar-w)]"></div>
 
@@ -32,7 +32,7 @@
         <p style="font-size:.78rem;color:var(--fs-text-muted);margin-bottom:5px">MOVIMENTAÇÃO FINANCEIRA</p>
         <h1 class="fs-display" style="font-size:1.6rem;font-weight:700;">Lançamentos</h1>
         <p style="color:var(--fs-text-muted);font-size:.9rem;margin-top:4px;">
-          Registre o que entrou e saiu para manter seu saldo e suas projeções atualizados.
+          Registre o que entrou e saiu. Datas futuras entram no planejamento e não alteram o saldo atual.
         </p>
       </div>
       <button id="fs-btn-novo-gasto" type="button" class="fs-btn fs-btn-primary" disabled>
@@ -111,6 +111,38 @@
         </div>
       </div>
     </section>
+
+    <section class="fs-surface fs-animate-in" style="overflow:hidden;margin-top:20px;">
+      <div style="padding:18px 20px;border-bottom:1px solid var(--fs-border);display:flex;align-items:center;justify-content:space-between;gap:16px;">
+        <div>
+          <h2 style="font-size:1rem;font-weight:700;">Lançamentos futuros</h2>
+          <p id="fs-lancamentos-futuros-contador" style="font-size:.72rem;color:var(--fs-text-muted);margin-top:3px;">0 lançamento(s) futuro(s)</p>
+        </div>
+        <a href="planning.html" style="font-size:.78rem;color:var(--fs-indigo);font-weight:600;">Abrir planejamento</a>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="text-align:left;border-bottom:1px solid var(--fs-border);">
+              <th style="padding:12px 14px;font-size:.68rem;color:var(--fs-text-muted);font-weight:600;">Data</th>
+              <th style="padding:12px 14px;font-size:.68rem;color:var(--fs-text-muted);font-weight:600;">Descrição</th>
+              <th style="padding:12px 14px;font-size:.68rem;color:var(--fs-text-muted);font-weight:600;">Tipo / categoria</th>
+              <th style="padding:12px 14px;font-size:.68rem;color:var(--fs-text-muted);font-weight:600;text-align:right;">Valor</th>
+            </tr>
+          </thead>
+          <tbody id="fs-lancamentos-futuros-lista"></tbody>
+        </table>
+      </div>
+
+      <div id="fs-lancamentos-futuros-vazio" style="display:flex;align-items:center;justify-content:center;min-height:180px;text-align:center;">
+        <div style="max-width:360px;padding:28px 16px;">
+          <div class="fs-empty-icon"><i data-lucide="calendar-clock" class="w-6 h-6"></i></div>
+          <p style="font-weight:600;margin-top:12px;">Nenhum lançamento futuro</p>
+          <p style="font-size:.78rem;color:var(--fs-text-muted);margin-top:5px;">Ao escolher uma data depois de hoje no formulário, o FinScore cria automaticamente um compromisso futuro.</p>
+        </div>
+      </div>
+    </section>
   </main>
 
   <div
@@ -123,7 +155,7 @@
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px;">
         <div>
           <h2 id="fs-titulo-lancamento" style="font-size:1.05rem;font-weight:700;">Novo lançamento</h2>
-          <p style="font-size:.75rem;color:var(--fs-text-muted);margin-top:4px;">Registre uma receita ou uma despesa.</p>
+          <p style="font-size:.75rem;color:var(--fs-text-muted);margin-top:4px;">Datas passadas e de hoje viram transações. Datas futuras viram planejamento.</p>
         </div>
         <button id="fs-fechar-lancamento" type="button" class="fs-btn fs-btn-secondary" style="padding:8px;" aria-label="Fechar">
           <i data-lucide="x" class="w-4 h-4"></i>
@@ -182,8 +214,8 @@
   </div>
 
   <script type="module">
-    import { iniciarPagina } from '../js/app.js?v=20261007-expenses4';
-    import { inicializarLancamentos, configurarFormularioLancamento } from '../js/modules/expenses.js?v=20261007-expenses2';
+    import { iniciarPagina } from '../js/app.js?v=20261007-expenses5';
+    import { inicializarLancamentos, configurarFormularioLancamento } from '../js/modules/expenses.js?v=20261007-expenses5';
 
     iniciarPagina('expenses', () => {
       if (window.lucide) window.lucide.createIcons();
