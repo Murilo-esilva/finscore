@@ -9,7 +9,7 @@ import {
   atualizarRecorrencia,
   encerrarRecorrencia,
   rotuloTipoConta,
-} from "../../services/planningService.js?v=20261007-planning4";
+} from "../../services/planningService.js?v=20261007-planning5";
 import { listarContas } from "../../services/accountService.js";
 
 const moeda = (cents) =>
@@ -257,6 +257,35 @@ function renderizarCompromissos(compromissos) {
     })
     .join("");
 
+  lista.querySelectorAll(".fs-btn-editar-compromisso").forEach((button) => {
+    button.addEventListener("click", () => {
+      const item = compromissos.find((value) => value.id === button.dataset.id);
+      if (item) prepararModal(item);
+    });
+  });
+
+  lista.querySelectorAll(".fs-btn-excluir-compromisso").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const item = compromissos.find((value) => value.id === button.dataset.id);
+      if (!item) return;
+      if (!window.confirm(`Excluir "${item.description}"? O compromisso será cancelado e deixará de entrar na projeção.`)) return;
+
+      button.disabled = true;
+      try {
+        await excluirCompromisso(item.id);
+        await carregarDados();
+      } catch (error) {
+        const erro = document.getElementById("fs-planejamento-erro");
+        if (erro) {
+          erro.hidden = false;
+          erro.textContent = error?.message || "Não foi possível excluir o compromisso.";
+        }
+      } finally {
+        button.disabled = false;
+      }
+    });
+  });
+
   if (window.lucide) window.lucide.createIcons();
 }
 
@@ -326,35 +355,6 @@ function renderizarRecorrencias(recorrencias) {
         </div>`;
     })
     .join("");
-
-  lista.querySelectorAll(".fs-btn-editar-compromisso").forEach((button) => {
-    button.addEventListener("click", () => {
-      const item = compromissos.find((value) => value.id === button.dataset.id);
-      if (item) prepararModal(item);
-    });
-  });
-
-  lista.querySelectorAll(".fs-btn-excluir-compromisso").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const item = compromissos.find((value) => value.id === button.dataset.id);
-      if (!item) return;
-      if (!window.confirm(`Excluir "${item.description}"? O compromisso será cancelado e deixará de entrar na projeção.`)) return;
-
-      button.disabled = true;
-      try {
-        await excluirCompromisso(item.id);
-        await carregarDados();
-      } catch (error) {
-        const erro = document.getElementById("fs-planejamento-erro");
-        if (erro) {
-          erro.hidden = false;
-          erro.textContent = error?.message || "Não foi possível excluir o compromisso.";
-        }
-      } finally {
-        button.disabled = false;
-      }
-    });
-  });
 
   lista.querySelectorAll(".fs-btn-editar-recorrencia").forEach((button) => {
     button.addEventListener("click", () => {
