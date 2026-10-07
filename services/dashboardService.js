@@ -24,6 +24,10 @@ function somarPorDirecao(transacoes, direcao) {
 
 export async function obterResumoDashboard() {
   const client = exigirSupabase();
+
+  const { error: materializeError } = await client.rpc("materialize_my_recurrences");
+  if (materializeError) throw materializeError;
+
   const contas = await listarContas();
 
   const hoje = new Date();
