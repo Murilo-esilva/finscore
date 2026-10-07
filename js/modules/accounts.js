@@ -86,7 +86,17 @@ export function configurarFormularioConta() {
       await inicializarContas();
     } catch (error) {
       console.error(error);
-      erro.textContent = error.message || "Não foi possível criar a conta.";
+
+      if (
+        error?.code === "23505" &&
+        error?.message?.includes("accounts_active_name_unique")
+      ) {
+        erro.textContent = "Já existe uma conta ativa com esse nome. Escolha outro nome.";
+      } else {
+        erro.textContent =
+          error?.message || "Não foi possível criar a conta.";
+      }
+
       erro.hidden = false;
     } finally {
       botao.disabled = false;
