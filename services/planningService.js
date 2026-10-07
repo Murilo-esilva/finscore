@@ -124,6 +124,77 @@ export async function listarRecorrencias() {
   });
 }
 
+export async function atualizarCompromisso({
+  id,
+  account_id = null,
+  category_id = null,
+  kind = "expense",
+  amount_cents,
+  due_on,
+  description,
+}) {
+  const client = exigirSupabase();
+
+  const { data, error } = await client.rpc("update_commitment", {
+    p_id: id,
+    p_account_id: account_id || null,
+    p_category_id: category_id || null,
+    p_kind: kind,
+    p_amount_cents: Math.abs(Number(amount_cents)),
+    p_due_on: due_on,
+    p_description: description,
+  });
+
+  if (error) throw error;
+  return data;
+}
+
+export async function excluirCompromisso(id) {
+  const client = exigirSupabase();
+
+  const { data, error } = await client.rpc("delete_commitment", {
+    p_id: id,
+  });
+
+  if (error) throw error;
+  return data;
+}
+
+export async function atualizarRecorrencia({
+  id,
+  account_id,
+  category_id = null,
+  kind = "expense",
+  amount_cents,
+  anchor_date,
+  description,
+  frequency,
+  interval_count = 1,
+  day_of_month = null,
+  ends_on = null,
+  max_occurrences = null,
+}) {
+  const client = exigirSupabase();
+
+  const { data, error } = await client.rpc("update_recurrence_rule", {
+    p_id: id,
+    p_account_id: account_id || null,
+    p_category_id: category_id || null,
+    p_kind: kind,
+    p_amount_cents: Math.abs(Number(amount_cents)),
+    p_anchor_date: anchor_date,
+    p_description: description,
+    p_frequency: frequency,
+    p_interval_count: Number(interval_count || 1),
+    p_day_of_month: day_of_month ? Number(day_of_month) : null,
+    p_ends_on: ends_on || null,
+    p_max_occurrences: max_occurrences ? Number(max_occurrences) : null,
+  });
+
+  if (error) throw error;
+  return data;
+}
+
 export async function criarCompromisso({
   account_id = null,
   category_id = null,
