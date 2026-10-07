@@ -4,7 +4,7 @@ import {
   criarLancamento,
   reverterLancamento,
   rotuloTipoConta,
-} from "../../services/expenseService.js";
+} from "../../services/expenseService.js?v=20261007-expense5";
 import { listarContas } from "../../services/accountService.js";
 
 const moeda = (cents) =>
