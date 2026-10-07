@@ -7,10 +7,56 @@ export async function listarContas() {
 
   if (error) throw error;
 
-  return (data || []).map((conta) => ({
+  const contas = (data || []).map((conta) => ({
     ...conta,
     opening_balance_cents: Number(conta.opening_balance_cents ?? 0),
   }));
+
+  if (!contas.length) return [];
+
+  const ids = contas.map((conta) => conta.id);
+  const { data: transacoes, error: transacoesError } = await client
+    .from("transactions")
+    .select("account_id,kind,direction,amount_cents")
+    .in("account_id", ids);
+
+  if (transacoesError) throw transacoesError;
+
+  const porConta = new Map();
+
+  for (const conta of contas) {
+    porConta.set(conta.id, {
+      opening: conta.opening_balance_cents,
+      openingTransaction: 0,
+      delta: 0,
+    });
+  }
+
+  for (const transacao of transacoes || []) {
+    const item = porConta.get(transacao.account_id);
+    if (!item) continue;
+
+    const amount = Number(transacao.amount_cents ?? 0);
+    const signed = transacao.direction === "credit" ? amount : -amount;
+
+    if (transacao.kind === "opening_balance") {
+      item.openingTransaction += signed;
+    } else {
+      item.delta += signed;
+    }
+  }
+
+  return contas.map((conta) => {
+    const item = porConta.get(conta.id);
+    const opening = item.opening !== 0
+      ? item.opening
+      : item.openingTransaction;
+
+    return {
+      ...conta,
+      balance_cents: opening + item.delta,
+    };
+  });
 }
 
 export async function criarConta({
