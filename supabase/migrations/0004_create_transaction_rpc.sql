@@ -92,3 +92,7 @@ revoke all on function public.create_transaction(
 grant execute on function public.create_transaction(
   uuid, public.transaction_kind, public.entry_direction, bigint, date, date, text
 ) to authenticated;
+
+
+-- Atualiza o schema cache do PostgREST após a criação/alteração da RPC.
+notify pgrst, 'reload schema';
