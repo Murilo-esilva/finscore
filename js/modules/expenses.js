@@ -1,5 +1,6 @@
 import {
   listarLancamentos,
+  listarCategorias,
   criarLancamento,
   formatarSaldo,
   rotuloTipoConta,
@@ -65,6 +66,24 @@ function fecharModal() {
   if (erro) erro.hidden = true;
 }
 
+function renderizarCategoriasSelect(categorias) {
+  const select = document.getElementById("fs-lancamento-categoria");
+  if (!select) return;
+
+  select.innerHTML = categorias.length
+    ? '<option value="">Selecione uma categoria</option>' +
+      categorias.map((categoria) =>
+        `<option value="${esc(categoria.id)}">${esc(categoria.name)}</option>`
+      ).join("")
+    : '<option value="">Nenhuma categoria cadastrada</option>';
+}
+
+function atualizarObrigatoriedadeCategoria() {
+  const tipo = document.getElementById("fs-lancamento-tipo")?.value;
+  const select = document.getElementById("fs-lancamento-categoria");
+  if (select) select.required = tipo === "expense";
+}
+
 function renderizarContasSelect(contas) {
   const select = document.getElementById("fs-lancamento-conta");
   if (!select) return;
@@ -110,7 +129,10 @@ function renderizarTabela(lancamentos) {
           <strong style="font-size:.8rem;">${esc(item.description)}</strong>
           <p style="font-size:.68rem;color:var(--fs-text-muted);margin-top:3px;">${esc(conta)}</p>
         </td>
-        <td style="padding:13px 14px;color:var(--fs-text-muted);font-size:.75rem;">${credito ? "Receita" : "Despesa"}</td>
+        <td style="padding:13px 14px;color:var(--fs-text-muted);font-size:.75rem;">
+          <span>${credito ? "Receita" : "Despesa"}</span>
+          <p style="font-size:.66rem;margin-top:3px;">${esc(item.categoria?.name || "Sem categoria")}</p>
+        </td>
         <td style="padding:13px 14px;text-align:right;white-space:nowrap;font-family:var(--fs-font-mono);font-weight:700;${classe}">${sinal} ${moeda(item.amount_cents)}</td>
       </tr>`;
   }).join("");
@@ -134,12 +156,15 @@ export async function inicializarLancamentos() {
   const erro = document.getElementById("fs-lancamentos-erro");
 
   try {
-    const [contas, lancamentos] = await Promise.all([
+    const [contas, categorias, lancamentos] = await Promise.all([
       listarContas(),
+      listarCategorias(),
       listarLancamentos(),
     ]);
 
     renderizarContasSelect(contas);
+    renderizarCategoriasSelect(categorias);
+    atualizarObrigatoriedadeCategoria();
     renderizarTabela(lancamentos);
     atualizarResumo(lancamentos);
 
@@ -164,6 +189,7 @@ export function configurarFormularioLancamento() {
 
   form.dataset.configurado = "true";
 
+  document.getElementById("fs-lancamento-tipo")?.addEventListener("change", atualizarObrigatoriedadeCategoria);
   document.getElementById("fs-fechar-lancamento")?.addEventListener("click", fecharModal);
   document.getElementById("fs-cancelar-lancamento")?.addEventListener("click", fecharModal);
   document.getElementById("fs-modal-lancamento")?.addEventListener("click", (event) => {
@@ -193,9 +219,17 @@ export function configurarFormularioLancamento() {
         throw new Error("Informe um valor maior que zero.");
       }
 
+      const tipo = document.getElementById("fs-lancamento-tipo").value;
+      const categoria = document.getElementById("fs-lancamento-categoria").value;
+
+      if (tipo === "expense" && !categoria) {
+        throw new Error("Selecione uma categoria para a despesa.");
+      }
+
       await criarLancamento({
         account_id: document.getElementById("fs-lancamento-conta").value,
-        type: document.getElementById("fs-lancamento-tipo").value,
+        category_id: categoria || null,
+        type: tipo,
         amount_cents: Math.round(valor * 100),
         occurred_on: document.getElementById("fs-lancamento-data").value,
         description: document.getElementById("fs-lancamento-descricao").value.trim(),
