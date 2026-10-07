@@ -1,42 +1,9 @@
 import { exigirSupabase } from "../src/core/supabase/client.js";
 import { listarContas, formatarSaldo, rotuloTipoConta } from "./accountService.js";
-
-const normalizarCategorias = (data = []) => {
-  const unicas = new Map();
-
-  for (const categoria of data) {
-    const chave = `${categoria.nature}:${String(categoria.name || "")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .trim()
-      .toLowerCase()}`;
-
-    const existente = unicas.get(chave);
-    if (!existente || (categoria.is_system && !existente.is_system)) {
-      unicas.set(chave, categoria);
-    }
-  }
-
-  return [...unicas.values()].sort((a, b) =>
-    String(a.name).localeCompare(String(b.name), "pt-BR")
-  );
-};
+import { listarCategorias as listarCategoriasBase } from "./categoryService.js?v=20261007-category4";
 
 export async function listarCategorias() {
-  const client = exigirSupabase();
-
-  const { error: bootstrapError } = await client.rpc("ensure_default_categories");
-  if (bootstrapError) throw bootstrapError;
-
-  const { data, error } = await client
-    .from("categories")
-    .select("id,name,nature,is_system,archived_at")
-    .is("archived_at", null)
-    .order("nature", { ascending: true })
-    .order("name", { ascending: true });
-
-  if (error) throw error;
-  return normalizarCategorias(data || []);
+  return listarCategoriasBase();
 }
 
 export async function listarLancamentos({ limite = 100 } = {}) {
