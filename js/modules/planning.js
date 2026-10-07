@@ -3,7 +3,10 @@ import {
   listarRecorrencias,
   listarCategoriasPlanejamento,
   criarCompromisso,
+  atualizarCompromisso,
+  excluirCompromisso,
   criarRecorrencia,
+  atualizarRecorrencia,
   encerrarRecorrencia,
   rotuloTipoConta,
 } from "../../services/planningService.js?v=20261007-planning4";
@@ -52,29 +55,90 @@ function rotuloFrequencia(frequency, interval) {
   return mapa[frequency] || frequency;
 }
 
-function abrirModal() {
+
+function limparEstadoEdicao() {
+  document.getElementById("fs-compromisso-id").value = "";
+  document.getElementById("fs-recorrencia-id").value = "";
+  document.getElementById("fs-titulo-compromisso").textContent = "Novo compromisso";
+  document.getElementById("fs-btn-salvar-compromisso").textContent = "Salvar compromisso";
+  const recorrente = document.getElementById("fs-compromisso-recorrente");
+  if (recorrente) {
+    recorrente.checked = false;
+    recorrente.disabled = false;
+  }
+  document.getElementById("fs-recorrencia-opcoes").hidden = true;
+  alternarDiaRecorrencia();
+}
+
+function prepararModal(categoria = null, recorrencia = null) {
   const modal = document.getElementById("fs-modal-compromisso");
   const form = document.getElementById("fs-form-compromisso");
   const erro = document.getElementById("fs-form-compromisso-erro");
-  const data = document.getElementById("fs-compromisso-data");
   if (!modal) return;
 
   form?.reset();
   if (erro) erro.hidden = true;
-  if (data) data.value = adicionarDiasISO(1);
+  limparEstadoEdicao();
 
-  document.getElementById("fs-compromisso-recorrente").checked = false;
-  document.getElementById("fs-recorrencia-opcoes").hidden = true;
-  document.getElementById("fs-recorrencia-frequencia").value = "monthly";
-  document.getElementById("fs-recorrencia-intervalo").value = "1";
-  document.getElementById("fs-recorrencia-dia").value = String(new Date().getDate());
-  document.getElementById("fs-recorrencia-fim").value = "";
-  document.getElementById("fs-recorrencia-quantidade").value = "";
+  const id = categoria?.id || "";
+  const ruleId = recorrencia?.id || "";
+  const template = recorrencia?.template || null;
 
-  atualizarCategoriasPorTipo();
+  document.getElementById("fs-compromisso-id").value = id;
+  document.getElementById("fs-recorrencia-id").value = ruleId;
+
+  if (categoria) {
+    document.getElementById("fs-titulo-compromisso").textContent = "Editar compromisso";
+    document.getElementById("fs-btn-salvar-compromisso").textContent = "Salvar alterações";
+    document.getElementById("fs-compromisso-tipo").value = categoria.kind || "expense";
+    document.getElementById("fs-compromisso-conta").value = categoria.account_id || "";
+    document.getElementById("fs-compromisso-categoria").value = categoria.category_id || "";
+    document.getElementById("fs-compromisso-valor").value = Number(categoria.amount_cents || 0) / 100;
+    document.getElementById("fs-compromisso-data").value = categoria.due_on || "";
+    document.getElementById("fs-compromisso-descricao").value = categoria.description || "";
+    const recorrente = document.getElementById("fs-compromisso-recorrente");
+    recorrente.checked = false;
+    recorrente.disabled = true;
+    document.getElementById("fs-recorrencia-opcoes").hidden = true;
+    atualizarCategoriasPorTipo();
+    document.getElementById("fs-compromisso-categoria").value = categoria.category_id || "";
+  } else if (recorrencia) {
+    document.getElementById("fs-titulo-compromisso").textContent = "Editar recorrência";
+    document.getElementById("fs-btn-salvar-compromisso").textContent = "Salvar recorrência";
+
+    document.getElementById("fs-compromisso-tipo").value = template?.kind || "expense";
+    document.getElementById("fs-compromisso-conta").value = template?.account_id || "";
+    atualizarCategoriasPorTipo();
+    document.getElementById("fs-compromisso-categoria").value = template?.category_id || "";
+    document.getElementById("fs-compromisso-valor").value = Number(template?.amount_cents || 0) / 100;
+    document.getElementById("fs-compromisso-data").value = recorrencia.anchor_date || "";
+    document.getElementById("fs-compromisso-descricao").value = template?.description || "";
+
+    const recorrente = document.getElementById("fs-compromisso-recorrente");
+    recorrente.checked = true;
+    recorrente.disabled = true;
+    document.getElementById("fs-recorrencia-opcoes").hidden = false;
+    document.getElementById("fs-recorrencia-frequencia").value = recorrencia.frequency || "monthly";
+    document.getElementById("fs-recorrencia-intervalo").value = recorrencia.interval_count || 1;
+    document.getElementById("fs-recorrencia-dia-valor").value = recorrencia.day_of_month || "";
+    document.getElementById("fs-recorrencia-fim").value = recorrencia.ends_on || "";
+    document.getElementById("fs-recorrencia-quantidade").value = recorrencia.max_occurrences || "";
+    alternarDiaRecorrencia();
+  }
+
   modal.setAttribute("aria-hidden", "false");
   modal.style.display = "grid";
   requestAnimationFrame(() => document.getElementById("fs-compromisso-descricao")?.focus());
+}
+
+function abrirModal() {
+  prepararModal();
+  const data = document.getElementById("fs-compromisso-data");
+  if (data) data.value = adicionarDiasISO(1);
+  document.getElementById("fs-recorrencia-frequencia").value = "monthly";
+  document.getElementById("fs-recorrencia-intervalo").value = "1";
+  document.getElementById("fs-recorrencia-dia-valor").value = String(new Date().getDate());
+  alternarDiaRecorrencia();
 }
 
 function fecharModal() {
@@ -159,9 +223,18 @@ function renderizarCompromissos(compromissos) {
       const sinal = receita ? "+" : "-";
       const conta = item.conta?.name || "Sem conta";
       const categoria = item.categoria?.name || "Sem categoria";
-      const recorrente = item.recurrence_rule_id
-        ? '<span style="margin-left:6px;padding:3px 7px;border-radius:999px;background:var(--fs-surface-2);">Recorrente</span>'
-        : "";
+      const recorrente = Boolean(item.recurrence_rule_id);
+      const acoes = recorrente ? `
+        <span style="font-size:.68rem;color:var(--fs-text-muted);">Gerenciado pela recorrência</span>
+      ` : `
+        <div style="display:flex;gap:6px;">
+          <button type="button" class="fs-btn fs-btn-secondary fs-btn-editar-compromisso" data-id="${esc(item.id)}" style="padding:7px 9px;" title="Editar">
+            <i data-lucide="pencil" class="w-4 h-4"></i>
+          </button>
+          <button type="button" class="fs-btn fs-btn-secondary fs-btn-excluir-compromisso" data-id="${esc(item.id)}" style="padding:7px 9px;" title="Excluir">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>
+        </div>`;
 
       return `
         <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 20px;border-bottom:1px solid var(--fs-border);">
@@ -172,11 +245,14 @@ function renderizarCompromissos(compromissos) {
             <div style="min-width:0;">
               <p style="font-size:.82rem;font-weight:600;">${esc(item.description)}</p>
               <p style="font-size:.68rem;color:var(--fs-text-muted);margin-top:4px;">
-                ${formatarData(item.due_on)} · ${tipo} · ${esc(categoria)} · ${esc(conta)}${recorrente}
+                ${formatarData(item.due_on)} · ${tipo} · ${esc(categoria)} · ${esc(conta)}${recorrente ? ' · Recorrente' : ''}
               </p>
             </div>
           </div>
-          <strong class="fs-mono" style="font-size:.82rem;white-space:nowrap;">${sinal} ${moeda(item.amount_cents)}</strong>
+          <div style="display:flex;align-items:center;gap:14px;flex-shrink:0;">
+            <strong class="fs-mono" style="font-size:.82rem;white-space:nowrap;">${sinal} ${moeda(item.amount_cents)}</strong>
+            ${acoes}
+          </div>
         </div>`;
     })
     .join("");
@@ -240,13 +316,52 @@ function renderizarRecorrencias(recorrencias) {
           </div>
           <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
             <strong class="fs-mono" style="font-size:.82rem;white-space:nowrap;">${valor}</strong>
-            <button type="button" class="fs-btn fs-btn-secondary fs-btn-encerrar-recorrencia" data-id="${esc(rule.id)}" style="padding:7px 9px;" title="Encerrar recorrência">
-              <i data-lucide="square-stop" class="w-4 h-4"></i>
+            <button type="button" class="fs-btn fs-btn-secondary fs-btn-editar-recorrencia" data-id="${esc(rule.id)}" style="padding:7px 9px;" title="Editar recorrência">
+              <i data-lucide="pencil" class="w-4 h-4"></i>
+            </button>
+            <button type="button" class="fs-btn fs-btn-secondary fs-btn-encerrar-recorrencia" data-id="${esc(rule.id)}" style="padding:7px 9px;" title="Excluir recorrência">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
             </button>
           </div>
         </div>`;
     })
     .join("");
+
+  lista.querySelectorAll(".fs-btn-editar-compromisso").forEach((button) => {
+    button.addEventListener("click", () => {
+      const item = compromissos.find((value) => value.id === button.dataset.id);
+      if (item) prepararModal(item);
+    });
+  });
+
+  lista.querySelectorAll(".fs-btn-excluir-compromisso").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const item = compromissos.find((value) => value.id === button.dataset.id);
+      if (!item) return;
+      if (!window.confirm(`Excluir "${item.description}"? O compromisso será cancelado e deixará de entrar na projeção.`)) return;
+
+      button.disabled = true;
+      try {
+        await excluirCompromisso(item.id);
+        await carregarDados();
+      } catch (error) {
+        const erro = document.getElementById("fs-planejamento-erro");
+        if (erro) {
+          erro.hidden = false;
+          erro.textContent = error?.message || "Não foi possível excluir o compromisso.";
+        }
+      } finally {
+        button.disabled = false;
+      }
+    });
+  });
+
+  lista.querySelectorAll(".fs-btn-editar-recorrencia").forEach((button) => {
+    button.addEventListener("click", () => {
+      const rule = recorrencias.find((item) => item.id === button.dataset.id);
+      if (rule) prepararModal(null, rule);
+    });
+  });
 
   lista.querySelectorAll(".fs-btn-encerrar-recorrencia").forEach((button) => {
     button.addEventListener("click", async () => {
@@ -361,7 +476,10 @@ export function configurarFormularioCompromisso() {
       if (!accountId) throw new Error("Selecione a conta que será impactada.");
       if (!dueOn) throw new Error("Informe a data.");
 
-      if (recorrente) {
+      const compromissoId = document.getElementById("fs-compromisso-id").value;
+      const recorrenciaId = document.getElementById("fs-recorrencia-id").value;
+
+      if (recorrenciaId) {
         const fim = document.getElementById("fs-recorrencia-fim").value || null;
         const quantidade = document.getElementById("fs-recorrencia-quantidade").value || null;
         const frequencia = document.getElementById("fs-recorrencia-frequencia").value;
@@ -375,7 +493,8 @@ export function configurarFormularioCompromisso() {
         if (fim && fim < dueOn) throw new Error("A data final deve ser igual ou posterior ao início.");
         if (quantidade && Number(quantidade) > 120) throw new Error("A recorrência pode ter no máximo 120 ocorrências.");
 
-        await criarRecorrencia({
+        await atualizarRecorrencia({
+          id: recorrenciaId,
           account_id: accountId,
           category_id: categoryId || null,
           kind,
@@ -387,6 +506,16 @@ export function configurarFormularioCompromisso() {
           day_of_month: dia,
           ends_on: fim,
           max_occurrences: quantidade ? Number(quantidade) : null,
+        });
+      } else if (compromissoId) {
+        await atualizarCompromisso({
+          id: compromissoId,
+          account_id: accountId,
+          category_id: categoryId || null,
+          kind,
+          amount_cents: Math.round(valor * 100),
+          due_on: dueOn,
+          description: descricao,
         });
       } else {
         await criarCompromisso({
