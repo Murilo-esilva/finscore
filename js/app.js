@@ -15,7 +15,7 @@
  */
 import { exigirAutenticacao } from "./modules/auth.js";
 import { renderNavbar } from "../components/navbar.js";
-import { renderSidebar } from "../components/sidebar.js";
+import { renderSidebar } from "../components/sidebar.js?v=20261007-sidebar2";
 import { aplicarTema, obterTemaSalvo } from "./modules/utils.js";
 
 // Aplica o tema o quanto antes, para evitar "flash" de tema errado.
