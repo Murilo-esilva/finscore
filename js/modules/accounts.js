@@ -3,7 +3,7 @@ import {
   criarConta,
   formatarSaldo,
   rotuloTipoConta,
-} from "../../services/accountService.js";
+} from "../../services/accountService.js?v=20261007-account3";
 
 export async function inicializarContas() {
   const lista = document.getElementById("fs-contas-lista");
