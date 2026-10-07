@@ -67,7 +67,7 @@ export async function obterResumoDashboard() {
   const despesasMesCents = somarPorDirecao(realizadosDoMes, "debit");
 
   const compromissosFuturos = (compromissos || []).filter(
-    (item) => item.due_on > hojeISO
+    (item) => item.due_on >= hojeISO
   );
 
   const comprometidoCents = compromissosFuturos
