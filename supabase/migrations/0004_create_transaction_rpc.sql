@@ -53,6 +53,25 @@ begin
     raise exception 'category_required_for_expense';
   end if;
 
+  if p_category_id is not null and not exists (
+    select 1
+      from public.categories c
+     where c.id = p_category_id
+       and c.archived_at is null
+       and (c.user_id is null or c.user_id = v_user_id)
+       and c.nature = case
+         when p_kind = 'expense'::public.transaction_kind then 'expense'::public.category_nature
+         when p_kind = 'income'::public.transaction_kind then 'income'::public.category_nature
+         else c.nature
+       end
+  ) then
+    raise exception 'category_nature_mismatch';
+  end if;
+
+  if p_kind = 'expense'::public.transaction_kind and p_category_id is null then
+    raise exception 'category_required_for_expense';
+  end if;
+
   if not exists (
     select 1
       from public.accounts a
