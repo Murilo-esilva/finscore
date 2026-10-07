@@ -5,10 +5,8 @@ export async function listarContas() {
 
   const { data, error } = await client
     .from("accounts")
-    .select(
-      "id,name,account_type,account_status,opening_balance_cents,include_in_cash,include_in_net_worth,color,archived_at"
-    )
-    .eq("account_status", "active")
+    .select("id,name,type,status,opening_cents")
+    .eq("status", "active")
     .order("name");
 
   if (error) throw error;
@@ -20,9 +18,6 @@ export async function criarConta({
   account_type,
   opening_balance_cents = 0,
   opening_balance_on,
-  include_in_cash = true,
-  include_in_net_worth = true,
-  color = null,
 }) {
   const client = exigirSupabase();
 
@@ -33,12 +28,10 @@ export async function criarConta({
 
   const { data, error } = await client.rpc("create_account", {
     p_name: name,
-    p_account_type: account_type,
-    p_opening_balance_cents: opening_balance_cents,
-    p_opening_balance_on: opening_balance_on,
-    p_include_in_cash: include_in_cash,
-    p_include_in_net_worth: include_in_net_worth,
-    p_color: color,
+    p_type: account_type,
+    p_opening_cents: opening_balance_cents,
+    p_opening_on: opening_balance_on,
+    p_include_in_net_worth: true,
   });
 
   if (error) throw error;
