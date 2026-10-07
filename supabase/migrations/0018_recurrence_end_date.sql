@@ -122,7 +122,7 @@ begin
           v_rule.id,
           v_occurrence
         )
-        on conflict (user_id, recurrence_rule_id, occurrence_on) do nothing;
+        on conflict (user_id, recurrence_rule_id, occurrence_on) where recurrence_rule_id is not null do nothing;
 
         if found then
           v_added := v_added + 1;
