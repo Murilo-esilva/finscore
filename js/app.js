@@ -15,7 +15,7 @@
  */
 import { exigirAutenticacao } from "./modules/auth.js";
 import { renderNavbar } from "../components/navbar.js";
-import { renderSidebar } from "../components/sidebar.js";
+import { renderSidebar } from "../components/sidebar.js?v=20261007-sidebar2";
 import { aplicarTema, obterTemaSalvo } from "./modules/utils.js";
 
 // Aplica o tema o quanto antes, para evitar "flash" de tema errado.
@@ -23,15 +23,15 @@ aplicarTema(obterTemaSalvo());
 
 /**
  * @param {string} paginaAtiva - id da página atual: 'dashboard' | 'expenses' | 'reports' | 'profile' | 'settings'
- * @param {(user: import('firebase/auth').User) => void} aoCarregar - chamado após autenticação confirmada e layout montado
+ * @param {(user: object) => void} aoCarregar - chamado após autenticação confirmada e layout montado
  */
 export function iniciarPagina(paginaAtiva, aoCarregar) {
   exigirAutenticacao((user) => {
     renderSidebar(paginaAtiva);
     renderNavbar({
-      nome: user.displayName,
+      nome: user.user_metadata?.display_name || user.email,
       email: user.email,
-      foto: user.photoURL,
+      foto: user.user_metadata?.avatar_url || null,
     });
 
     document.body.classList.add("fs-authenticated");

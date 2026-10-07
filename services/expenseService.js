@@ -1,0 +1,136 @@
+import { exigirSupabase } from "../src/core/supabase/client.js";
+import { listarContas, formatarSaldo, rotuloTipoConta } from "./accountService.js";
+import { listarCategorias as listarCategoriasBase } from "./categoryService.js?v=20261007-category4";
+
+export async function listarCategorias() {
+  return listarCategoriasBase();
+}
+
+export async function listarLancamentos({ limite = 100 } = {}) {
+  const client = exigirSupabase();
+  const { data, error } = await client
+    .from("transactions")
+    .select("id,account_id,category_id,kind,direction,amount_cents,occurred_on,budget_on,description,created_at")
+    .neq("kind", "opening_balance")
+    .order("occurred_on", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(limite);
+
+  if (error) throw error;
+
+  const [contas, categorias] = await Promise.all([
+    listarContas(),
+    listarCategorias(),
+  ]);
+
+  const contasPorId = new Map(contas.map((conta) => [conta.id, conta]));
+  const categoriasPorId = new Map(categorias.map((categoria) => [categoria.id, categoria]));
+
+  return (data || []).map((item) => ({
+    ...item,
+    amount_cents: Number(item.amount_cents || 0),
+    conta: contasPorId.get(item.account_id) || null,
+    categoria: categoriasPorId.get(item.category_id) || null,
+  }));
+}
+
+export async function listarLancamentosFuturos({ limite = 100 } = {}) {
+  const client = exigirSupabase();
+
+  const { error: materializeError } = await client.rpc("materialize_my_recurrences");
+  if (materializeError) throw materializeError;
+
+  const hoje = new Date();
+  const hojeISO = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}-${String(hoje.getDate()).padStart(2, "0")}`;
+
+  const { data, error } = await client
+    .from("commitments")
+    .select("id,account_id,category_id,kind,status,amount_cents,due_on,description,recurrence_rule_id,created_at")
+    .in("status", ["planned", "confirmed"])
+    .gte("due_on", hojeISO)
+    .order("due_on", { ascending: true })
+    .order("created_at", { ascending: true })
+    .limit(limite);
+
+  if (error) throw error;
+
+  const [contas, categorias] = await Promise.all([
+    listarContas(),
+    listarCategorias(),
+  ]);
+
+  const contasPorId = new Map(contas.map((conta) => [conta.id, conta]));
+  const categoriasPorId = new Map(categorias.map((categoria) => [categoria.id, categoria]));
+
+  return (data || []).map((item) => ({
+    ...item,
+    amount_cents: Number(item.amount_cents || 0),
+    conta: contasPorId.get(item.account_id) || null,
+    categoria: categoriasPorId.get(item.category_id) || null,
+  }));
+}
+
+export async function reverterLancamento(id) {
+  const client = exigirSupabase();
+
+  const { data, error } = await client.rpc("reverse_transaction", {
+    p_transaction_id: id,
+  });
+
+  if (error) throw error;
+  return data;
+}
+
+export async function criarLancamento({
+  account_id,
+  category_id,
+  type,
+  amount_cents,
+  occurred_on,
+  description,
+}) {
+  const client = exigirSupabase();
+
+  const kind = type === "income" ? "income" : "expense";
+  const direction = type === "income" ? "credit" : "debit";
+
+  const { data, error } = await client.rpc("create_transaction", {
+    p_account_id: account_id,
+    p_kind: kind,
+    p_direction: direction,
+    p_amount_cents: Math.abs(Number(amount_cents)),
+    p_occurred_on: occurred_on,
+    p_budget_on: occurred_on,
+    p_description: description,
+    p_category_id: category_id || null,
+  });
+
+  if (error) throw error;
+  return data;
+}
+
+export async function criarLancamentoFuturo({
+  account_id,
+  category_id,
+  type,
+  amount_cents,
+  due_on,
+  description,
+}) {
+  const client = exigirSupabase();
+  const kind = type === "income" ? "income" : "expense";
+
+  const { data, error } = await client.rpc("create_commitment", {
+    p_account_id: account_id || null,
+    p_category_id: category_id || null,
+    p_kind: kind,
+    p_amount_cents: Math.abs(Number(amount_cents)),
+    p_due_on: due_on,
+    p_description: description,
+  });
+
+  if (error) throw error;
+  return data;
+}
+
+export { formatarSaldo, rotuloTipoConta };
