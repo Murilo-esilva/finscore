@@ -1,4 +1,4 @@
-import { obterResumoDashboard } from "../../services/dashboardService.js";
+import { obterResumoDashboard } from "../../services/dashboardService.js?v=20261007-dashboard2";
 
 const moeda = (cents) =>
   new Intl.NumberFormat("pt-BR", {
