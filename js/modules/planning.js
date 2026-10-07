@@ -9,7 +9,7 @@ import {
   atualizarRecorrencia,
   encerrarRecorrencia,
   rotuloTipoConta,
-} from "../../services/planningService.js?v=20261007-planning6";
+} from "../../services/planningService.js?v=20261007-planning7";
 import { listarContas } from "../../services/accountService.js";
 
 const moeda = (cents) =>
@@ -228,11 +228,11 @@ function renderizarCompromissos(compromissos) {
         <span style="font-size:.68rem;color:var(--fs-text-muted);">Gerenciado pela recorrência</span>
       ` : `
         <div style="display:flex;gap:6px;">
-          <button type="button" class="fs-btn fs-btn-secondary fs-btn-editar-compromisso" data-id="${esc(item.id)}" style="padding:7px 9px;" title="Editar">
-            <i data-lucide="pencil" class="w-4 h-4"></i>
+          <button type="button" class="fs-btn fs-btn-secondary fs-btn-editar-compromisso" data-id="${esc(item.id)}" style="padding:7px 9px;" title="Editar compromisso" aria-label="Editar compromisso">
+            <i data-lucide="pencil" class="w-4 h-4"></i><span class="hidden sm:inline">Editar</span>
           </button>
-          <button type="button" class="fs-btn fs-btn-secondary fs-btn-excluir-compromisso" data-id="${esc(item.id)}" style="padding:7px 9px;" title="Excluir">
-            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          <button type="button" class="fs-btn fs-btn-secondary fs-btn-excluir-compromisso" data-id="${esc(item.id)}" style="padding:7px 9px;" title="Excluir compromisso" aria-label="Excluir compromisso">
+            <i data-lucide="trash-2" class="w-4 h-4"></i><span class="hidden sm:inline">Excluir</span>
           </button>
         </div>`;
 
@@ -258,15 +258,23 @@ function renderizarCompromissos(compromissos) {
     .join("");
 
   lista.querySelectorAll(".fs-btn-editar-compromisso").forEach((button) => {
-    button.addEventListener("click", () => {
-      const item = compromissos.find((value) => value.id === button.dataset.id);
-      if (item) prepararModal(item);
-    });
+    button.onclick = () => {
+      const item = compromissos.find((value) => String(value.id) === String(button.dataset.id));
+      if (!item) {
+        const erro = document.getElementById("fs-planejamento-erro");
+        if (erro) {
+          erro.hidden = false;
+          erro.textContent = "Não foi possível localizar este compromisso para edição.";
+        }
+        return;
+      }
+      prepararModal(item);
+    };
   });
 
   lista.querySelectorAll(".fs-btn-excluir-compromisso").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const item = compromissos.find((value) => value.id === button.dataset.id);
+    button.onclick = async () => {
+      const item = compromissos.find((value) => String(value.id) === String(button.dataset.id));
       if (!item) return;
       if (!window.confirm(`Excluir "${item.description}"? O compromisso será cancelado e deixará de entrar na projeção.`)) return;
 
@@ -283,7 +291,7 @@ function renderizarCompromissos(compromissos) {
       } finally {
         button.disabled = false;
       }
-    });
+    };
   });
 
   if (window.lucide) window.lucide.createIcons();
@@ -345,11 +353,11 @@ function renderizarRecorrencias(recorrencias) {
           </div>
           <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
             <strong class="fs-mono" style="font-size:.82rem;white-space:nowrap;">${valor}</strong>
-            <button type="button" class="fs-btn fs-btn-secondary fs-btn-editar-recorrencia" data-id="${esc(rule.id)}" style="padding:7px 9px;" title="Editar recorrência">
-              <i data-lucide="pencil" class="w-4 h-4"></i>
+            <button type="button" class="fs-btn fs-btn-secondary fs-btn-editar-recorrencia" data-id="${esc(rule.id)}" style="padding:7px 9px;" title="Editar recorrência" aria-label="Editar recorrência">
+              <i data-lucide="pencil" class="w-4 h-4"></i><span class="hidden sm:inline">Editar</span>
             </button>
-            <button type="button" class="fs-btn fs-btn-secondary fs-btn-encerrar-recorrencia" data-id="${esc(rule.id)}" style="padding:7px 9px;" title="Excluir recorrência">
-              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            <button type="button" class="fs-btn fs-btn-secondary fs-btn-encerrar-recorrencia" data-id="${esc(rule.id)}" style="padding:7px 9px;" title="Excluir recorrência" aria-label="Excluir recorrência">
+              <i data-lucide="trash-2" class="w-4 h-4"></i><span class="hidden sm:inline">Excluir</span>
             </button>
           </div>
         </div>`;
@@ -357,19 +365,27 @@ function renderizarRecorrencias(recorrencias) {
     .join("");
 
   lista.querySelectorAll(".fs-btn-editar-recorrencia").forEach((button) => {
-    button.addEventListener("click", () => {
-      const rule = recorrencias.find((item) => item.id === button.dataset.id);
-      if (rule) prepararModal(null, rule);
-    });
+    button.onclick = () => {
+      const rule = recorrencias.find((value) => String(value.id) === String(button.dataset.id));
+      if (!rule) {
+        const erro = document.getElementById("fs-planejamento-erro");
+        if (erro) {
+          erro.hidden = false;
+          erro.textContent = "Não foi possível localizar esta recorrência para edição.";
+        }
+        return;
+      }
+      prepararModal(null, rule);
+    };
   });
 
   lista.querySelectorAll(".fs-btn-encerrar-recorrencia").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const rule = recorrencias.find((item) => item.id === button.dataset.id);
+    button.onclick = async () => {
+      const rule = recorrencias.find((value) => String(value.id) === String(button.dataset.id));
       if (!rule) return;
 
       const nome = rule.template?.description || "esta recorrência";
-      if (!window.confirm(`Encerrar "${nome}"? Os próximos compromissos dessa recorrência serão cancelados.`)) return;
+      if (!window.confirm(`Excluir "${nome}"? Os próximos compromissos dessa recorrência serão cancelados.`)) return;
 
       button.disabled = true;
       try {
@@ -379,12 +395,12 @@ function renderizarRecorrencias(recorrencias) {
         const erro = document.getElementById("fs-planejamento-erro");
         if (erro) {
           erro.hidden = false;
-          erro.textContent = error?.message || "Não foi possível encerrar a recorrência.";
+          erro.textContent = error?.message || "Não foi possível excluir a recorrência.";
         }
       } finally {
         button.disabled = false;
       }
-    });
+    };
   });
 
   if (window.lucide) window.lucide.createIcons();
