@@ -1,12 +1,11 @@
 /**
  * Configuração pública do Supabase.
  *
- * Em GitHub Pages não existe .env em runtime. Defina os valores
- * abaixo ou, preferencialmente, injete window.__FINSCORE_SUPABASE__
- * antes do módulo ser carregado.
+ * Em GitHub Pages não existe .env em runtime. A chave abaixo é uma
+ * chave pública (publishable) e pode ser usada pelo frontend.
  */
 export const SUPABASE_URL =
-  window.__FINSCORE_SUPABASE__?.url || "https://SEU-PROJETO.supabase.co";
+  "https://maylxptyvhexzzvqaqqh.supabase.co";
 
 export const SUPABASE_ANON_KEY =
-  window.__FINSCORE_SUPABASE__?.anonKey || "SUA_ANON_KEY";
+  "sb_publishable_oYuE8dHtl7TBpJ4HALcH1A_Q12XAOyM";
