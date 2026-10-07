@@ -23,15 +23,15 @@ aplicarTema(obterTemaSalvo());
 
 /**
  * @param {string} paginaAtiva - id da página atual: 'dashboard' | 'expenses' | 'reports' | 'profile' | 'settings'
- * @param {(user: import('firebase/auth').User) => void} aoCarregar - chamado após autenticação confirmada e layout montado
+ * @param {(user: object) => void} aoCarregar - chamado após autenticação confirmada e layout montado
  */
 export function iniciarPagina(paginaAtiva, aoCarregar) {
   exigirAutenticacao((user) => {
     renderSidebar(paginaAtiva);
     renderNavbar({
-      nome: user.displayName,
+      nome: user.user_metadata?.display_name || user.email,
       email: user.email,
-      foto: user.photoURL,
+      foto: user.user_metadata?.avatar_url || null,
     });
 
     document.body.classList.add("fs-authenticated");
