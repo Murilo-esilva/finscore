@@ -48,6 +48,9 @@ export async function inicializarContas() {
 }
 
 export function configurarFormularioConta() {
+  if (document.body.dataset.contaModalConfigurado === "true") return;
+  document.body.dataset.contaModalConfigurado = "true";
+
   const modal = document.getElementById("fs-modal-conta");
   const form = document.getElementById("fs-form-conta");
   const erro = document.getElementById("fs-form-conta-erro");
@@ -65,13 +68,15 @@ export function configurarFormularioConta() {
     erro.hidden = true;
     campoData.value = new Date().toISOString().slice(0, 10);
     modal.hidden = false;
+    modal.setAttribute("aria-hidden", "false");
     modal.style.display = "grid";
     requestAnimationFrame(() => campoNome.focus());
   };
 
   const fechar = (event) => {
     event?.preventDefault();
-    modal.hidden = true;
+    modal.hidden = false;
+    modal.setAttribute("aria-hidden", "true");
     modal.style.display = "none";
     form.reset();
     erro.hidden = true;
@@ -90,7 +95,7 @@ export function configurarFormularioConta() {
   });
 
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !modal.hidden) {
+    if (event.key === "Escape" && modal.getAttribute("aria-hidden") !== "true") {
       fechar(event);
     }
   });
