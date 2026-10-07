@@ -1,10 +1,12 @@
 import {
   listarLancamentos,
+  listarLancamentosFuturos,
   listarCategorias,
   criarLancamento,
+  criarLancamentoFuturo,
   reverterLancamento,
   rotuloTipoConta,
-} from "../../services/expenseService.js?v=20261007-expense5";
+} from "../../services/expenseService.js?v=20261007-expense6";
 import { listarContas } from "../../services/accountService.js";
 
 const moeda = (cents) =>
@@ -23,13 +25,17 @@ const esc = (value = "") =>
 
 let categoriasDisponiveis = [];
 let lancamentosDisponiveis = [];
+let lancamentosFuturosDisponiveis = [];
 
-function dataHoje() {
+function dataHojeISO() {
   const hoje = new Date();
-  const ano = hoje.getFullYear();
-  const mes = String(hoje.getMonth() + 1).padStart(2, "0");
-  const dia = String(hoje.getDate()).padStart(2, "0");
-  return `${ano}-${mes}-${dia}`;
+  return `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}-${String(hoje.getDate()).padStart(2, "0")}`;
+}
+
+function adicionarDiasISO(dias) {
+  const d = new Date();
+  d.setDate(d.getDate() + dias);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 function formatarData(data) {
@@ -48,7 +54,7 @@ function abrirModal() {
 
   form?.reset();
   if (erro) erro.hidden = true;
-  if (data) data.value = dataHoje();
+  if (data) data.value = dataHojeISO();
 
   modal.hidden = false;
   modal.setAttribute("aria-hidden", "false");
@@ -89,10 +95,6 @@ function atualizarCategoriasPorTipo() {
         `<option value="${esc(categoria.id)}">${esc(categoria.name)}</option>`
       ).join("")
     : `<option value="">Nenhuma categoria de ${tipo === "expense" ? "despesa" : "receita"} cadastrada</option>`;
-}
-
-function renderizarCategoriasSelect() {
-  atualizarCategoriasPorTipo();
 }
 
 function renderizarContasSelect(contas) {
@@ -206,11 +208,9 @@ function renderizarTabela(lancamentos) {
       const lancamento = lancamentosDisponiveis.find((item) => item.id === button.dataset.id);
       if (!lancamento) return;
 
-      const confirmou = window.confirm(
+      if (!window.confirm(
         `Reverter "${lancamento.description}" de ${moeda(lancamento.amount_cents)}? O lançamento original será preservado.`
-      );
-
-      if (!confirmou) return;
+      )) return;
 
       button.disabled = true;
 
@@ -232,6 +232,47 @@ function renderizarTabela(lancamentos) {
   if (window.lucide) window.lucide.createIcons();
 }
 
+function renderizarLancamentosFuturos(lancamentos) {
+  const corpo = document.getElementById("fs-lancamentos-futuros-lista");
+  const vazio = document.getElementById("fs-lancamentos-futuros-vazio");
+  const contador = document.getElementById("fs-lancamentos-futuros-contador");
+  if (!corpo || !vazio) return;
+
+  if (contador) contador.textContent = `${lancamentos.length} lançamento(s) futuro(s)`;
+
+  if (!lancamentos.length) {
+    corpo.innerHTML = "";
+    vazio.hidden = false;
+    return;
+  }
+
+  vazio.hidden = true;
+  corpo.innerHTML = lancamentos.map((item) => {
+    const receita = item.kind === "income";
+    const sinal = receita ? "+" : "-";
+    const classe = receita ? "color:var(--fs-teal)" : "color:var(--fs-rose)";
+    const conta = item.conta?.name || "Conta removida";
+    const categoria = item.categoria?.name || "Sem categoria";
+    const recorrente = item.recurrence_rule_id
+      ? '<span style="margin-left:6px;padding:3px 7px;border-radius:999px;background:var(--fs-surface-2);">Recorrente</span>'
+      : "";
+
+    return `
+      <tr style="border-bottom:1px solid var(--fs-border);">
+        <td style="padding:13px 14px;white-space:nowrap;">${formatarData(item.due_on)}</td>
+        <td style="padding:13px 14px;min-width:220px;">
+          <strong style="font-size:.8rem;">${esc(item.description)}</strong>
+          <p style="font-size:.68rem;color:var(--fs-text-muted);margin-top:3px;">${esc(conta)}</p>
+        </td>
+        <td style="padding:13px 14px;color:var(--fs-text-muted);font-size:.75rem;">
+          <span>${receita ? "Receita prevista" : "Despesa prevista"}${recorrente}</span>
+          <p style="font-size:.66rem;margin-top:3px;">${esc(categoria)}</p>
+        </td>
+        <td style="padding:13px 14px;text-align:right;white-space:nowrap;font-family:var(--fs-font-mono);font-weight:700;${classe}">${sinal} ${moeda(item.amount_cents)}</td>
+      </tr>`;
+  }).join("");
+}
+
 function atualizarResumo(lancamentos) {
   const receitas = lancamentos
     .filter((item) => item.direction === "credit")
@@ -247,19 +288,22 @@ function atualizarResumo(lancamentos) {
 }
 
 async function carregarDados() {
-  const [contas, categorias, lancamentos] = await Promise.all([
+  const [contas, categorias, lancamentos, futuros] = await Promise.all([
     listarContas(),
     listarCategorias(),
     listarLancamentos(),
+    listarLancamentosFuturos(),
   ]);
 
   categoriasDisponiveis = categorias || [];
   lancamentosDisponiveis = lancamentos || [];
+  lancamentosFuturosDisponiveis = futuros || [];
 
   renderizarContasSelect(contas);
-  renderizarCategoriasSelect();
+  atualizarCategoriasPorTipo();
   renderizarFiltros(contas);
   aplicarFiltros();
+  renderizarLancamentosFuturos(lancamentosFuturosDisponiveis);
 }
 
 export async function inicializarLancamentos() {
@@ -332,18 +376,35 @@ export function configurarFormularioLancamento() {
       const valor = Number(document.getElementById("fs-lancamento-valor")?.value || 0);
       const tipo = document.getElementById("fs-lancamento-tipo").value;
       const categoria = document.getElementById("fs-lancamento-categoria").value;
+      const data = document.getElementById("fs-lancamento-data").value;
+      const descricao = document.getElementById("fs-lancamento-descricao").value.trim();
+      const hoje = dataHojeISO();
 
       if (!(valor > 0)) throw new Error("Informe um valor maior que zero.");
       if (tipo === "expense" && !categoria) throw new Error("Selecione uma categoria para a despesa.");
+      if (!data) throw new Error("Informe a data.");
+      if (!document.getElementById("fs-lancamento-conta").value) throw new Error("Selecione uma conta.");
+      if (!descricao) throw new Error("Informe uma descrição.");
 
-      await criarLancamento({
-        account_id: document.getElementById("fs-lancamento-conta").value,
-        category_id: categoria || null,
-        type: tipo,
-        amount_cents: Math.round(valor * 100),
-        occurred_on: document.getElementById("fs-lancamento-data").value,
-        description: document.getElementById("fs-lancamento-descricao").value.trim(),
-      });
+      if (data > hoje) {
+        await criarLancamentoFuturo({
+          account_id: document.getElementById("fs-lancamento-conta").value,
+          category_id: categoria || null,
+          type: tipo,
+          amount_cents: Math.round(valor * 100),
+          due_on: data,
+          description: descricao,
+        });
+      } else {
+        await criarLancamento({
+          account_id: document.getElementById("fs-lancamento-conta").value,
+          category_id: categoria || null,
+          type: tipo,
+          amount_cents: Math.round(valor * 100),
+          occurred_on: data,
+          description: descricao,
+        });
+      }
 
       fecharModal();
       await carregarDados();
