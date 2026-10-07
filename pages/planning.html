@@ -70,6 +70,9 @@
     </div>
 
     <form id="fs-form-compromisso">
+      <input id="fs-compromisso-id" type="hidden">
+      <input id="fs-recorrencia-id" type="hidden">
+
       <div id="fs-form-compromisso-erro" hidden style="margin-bottom:14px;padding:10px 12px;border-radius:10px;background:var(--fs-surface-2);color:var(--fs-rose);font-size:.75rem;"></div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -159,8 +162,8 @@
 </div>
 
 <script type="module">
-import{iniciarPagina}from'../js/app.js?v=20261007-planning5';
-import{inicializarPlanejamento,configurarFormularioCompromisso}from'../js/modules/planning.js?v=20261007-planning5';
+import{iniciarPagina}from'../js/app.js?v=20261007-planning6';
+import{inicializarPlanejamento,configurarFormularioCompromisso}from'../js/modules/planning.js?v=20261007-planning6';
 iniciarPagina('planning',()=>{if(window.lucide)window.lucide.createIcons();configurarFormularioCompromisso();inicializarPlanejamento()});
 </script>
 </body></html>
