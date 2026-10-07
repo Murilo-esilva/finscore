@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinScore — Categorias</title>
+<script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/variables.css"><link rel="stylesheet" href="../css/style.css">
+<script>(function(){const s=localStorage.getItem('fs-theme')||'system';const d=window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.setAttribute('data-theme',s==='system'?(d?'dark':'light'):s)})();</script>
+</head>
+<body>
+<div id="sidebar-root"></div><div id="navbar-root" class="lg:pl-[var(--fs-sidebar-w)]"></div>
+<main class="lg:pl-[var(--fs-sidebar-w)] p-5 lg:p-8" style="max-width:1200px;margin:0 auto;">
+<section style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:24px;" class="fs-animate-in">
+  <div>
+    <p style="font-size:.78rem;color:var(--fs-text-muted);margin-bottom:5px">CONFIGURAÇÃO FINANCEIRA</p>
+    <h1 class="fs-display" style="font-size:1.6rem;font-weight:700">Categorias</h1>
+    <p style="color:var(--fs-text-muted);font-size:.9rem;margin-top:4px">Organize suas receitas e despesas para controlar e analisar melhor seu dinheiro.</p>
+  </div>
+  <button id="fs-btn-nova-categoria" type="button" class="fs-btn fs-btn-primary">
+    <i data-lucide="plus" class="w-4 h-4"></i> Nova categoria
+  </button>
+</section>
+
+<div id="fs-categorias-erro" hidden style="margin-bottom:20px;padding:12px 14px;border:1px solid var(--fs-border);border-radius:12px;background:var(--fs-surface-2);color:var(--fs-rose);font-size:.78rem;"></div>
+
+<section class="fs-surface fs-animate-in" style="overflow:hidden;">
+  <div style="padding:18px 20px;border-bottom:1px solid var(--fs-border);display:flex;justify-content:space-between;align-items:center;">
+    <div>
+      <h2 style="font-size:1rem;font-weight:700">Suas categorias</h2>
+      <p id="fs-categorias-contador" style="font-size:.72rem;color:var(--fs-text-muted);margin-top:3px">0 categoria(s)</p>
+    </div>
+    <span style="font-size:.72rem;color:var(--fs-text-muted)">Categorias do sistema também aparecem aqui</span>
+  </div>
+
+  <div id="fs-categorias-lista"></div>
+
+  <div id="fs-categorias-vazio" style="display:flex;align-items:center;justify-content:center;min-height:260px;text-align:center;">
+    <div style="max-width:380px;padding:30px 16px;">
+      <div class="fs-empty-icon"><i data-lucide="tags" class="w-6 h-6"></i></div>
+      <p style="font-weight:600;margin-top:12px">Nenhuma categoria disponível</p>
+      <p style="font-size:.78rem;color:var(--fs-text-muted);margin-top:5px">Crie sua primeira categoria para organizar seus lançamentos.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<div id="fs-modal-categoria" aria-hidden="true" style="position:fixed;inset:0;z-index:80;display:none;place-items:center;background:rgba(15,23,42,.55);padding:20px;">
+  <div class="fs-surface" role="dialog" aria-modal="true" aria-labelledby="fs-titulo-categoria" style="width:min(100%,500px);padding:24px;box-shadow:0 24px 70px rgba(0,0,0,.2);">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:20px;">
+      <div>
+        <h2 id="fs-titulo-categoria" style="font-size:1.05rem;font-weight:700">Nova categoria</h2>
+        <p style="font-size:.75rem;color:var(--fs-text-muted);margin-top:4px">Categorias arquivadas continuam preservando o histórico financeiro.</p>
+      </div>
+      <button id="fs-fechar-categoria" type="button" class="fs-btn fs-btn-secondary" style="padding:8px">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <form id="fs-form-categoria">
+      <div id="fs-form-categoria-erro" hidden style="margin-bottom:14px;padding:10px 12px;border-radius:10px;background:var(--fs-surface-2);color:var(--fs-rose);font-size:.75rem;"></div>
+
+      <input id="fs-categoria-id" type="hidden">
+
+      <label style="display:block;margin-bottom:16px;">
+        <span style="display:block;font-size:.72rem;color:var(--fs-text-muted);margin-bottom:6px;">Nome</span>
+        <input id="fs-categoria-nome" required maxlength="100" type="text" class="fs-input" placeholder="Ex.: Alimentação" />
+      </label>
+
+      <label style="display:block;margin-bottom:16px;">
+        <span style="display:block;font-size:.72rem;color:var(--fs-text-muted);margin-bottom:6px;">Natureza</span>
+        <select id="fs-categoria-natureza" required class="fs-input">
+          <option value="expense">Despesa</option>
+          <option value="income">Receita</option>
+        </select>
+      </label>
+
+      <label style="display:flex;align-items:center;gap:10px;font-size:.8rem;margin-bottom:20px;">
+        <input id="fs-categoria-essencial" type="checkbox" style="width:16px;height:16px;">
+        <span>Marcar como despesa essencial</span>
+      </label>
+
+      <div style="display:flex;justify-content:flex-end;gap:10px;">
+        <button id="fs-cancelar-categoria" type="button" class="fs-btn fs-btn-secondary">Cancelar</button>
+        <button id="fs-btn-salvar-categoria" type="submit" class="fs-btn fs-btn-primary">Salvar categoria</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script type="module">
+import{iniciarPagina}from'../js/app.js?v=20261007-categories1';
+import{inicializarCategorias,configurarFormularioCategoria}from'../js/modules/categories.js?v=20261007-categories1';
+iniciarPagina('categories',()=>{if(window.lucide)window.lucide.createIcons();configurarFormularioCategoria();inicializarCategorias()});
+</script>
+</body></html>
