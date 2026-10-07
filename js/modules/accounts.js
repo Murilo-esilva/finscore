@@ -31,7 +31,10 @@ export async function inicializarContas() {
             <p style="font-size:.73rem;color:var(--fs-text-muted);margin-top:3px;">${rotuloTipoConta(conta.type)}</p>
           </div>
         </div>
-        <strong class="fs-mono" style="font-size:.92rem;white-space:nowrap;">${formatarSaldo(conta.opening_balance_cents)}</strong>
+        <div style="text-align:right;white-space:nowrap;">
+          <strong class="fs-mono" style="font-size:.92rem;">${formatarSaldo(conta.balance_cents)}</strong>
+          <p style="font-size:.68rem;color:var(--fs-text-muted);margin-top:3px;">Saldo atual</p>
+        </div>
       </article>
     `).join("");
 
