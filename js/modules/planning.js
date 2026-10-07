@@ -3,7 +3,7 @@ import {
   listarCategoriasPlanejamento,
   criarCompromisso,
   rotuloTipoConta,
-} from "../../services/planningService.js";
+} from "../../services/planningService.js?v=20261007-planning3";
 import { listarContas } from "../../services/accountService.js";
 
 const moeda = (cents) =>
