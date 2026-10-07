@@ -17,7 +17,7 @@ export async function listarContas() {
   const ids = contas.map((conta) => conta.id);
   const { data: transacoes, error: transacoesError } = await client
     .from("transactions")
-    .select("account_id,kind,direction,amount_cents")
+    .select("account_id,kind,direction,amount_cents,occurred_on")
     .in("account_id", ids);
 
   if (transacoesError) throw transacoesError;
@@ -41,7 +41,7 @@ export async function listarContas() {
 
     if (transacao.kind === "opening_balance") {
       item.openingTransaction += signed;
-    } else {
+    } else if (!transacao.occurred_on || transacao.occurred_on <= new Date().toISOString().slice(0, 10)) {
       item.delta += signed;
     }
   }
