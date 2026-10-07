@@ -72,7 +72,7 @@
             <tr style="text-align:left;border-bottom:1px solid var(--fs-border);">
               <th style="padding:12px 14px;font-size:.68rem;color:var(--fs-text-muted);font-weight:600;">Data</th>
               <th style="padding:12px 14px;font-size:.68rem;color:var(--fs-text-muted);font-weight:600;">Descrição</th>
-              <th style="padding:12px 14px;font-size:.68rem;color:var(--fs-text-muted);font-weight:600;">Tipo</th>
+              <th style="padding:12px 14px;font-size:.68rem;color:var(--fs-text-muted);font-weight:600;">Tipo / categoria</th>
               <th style="padding:12px 14px;font-size:.68rem;color:var(--fs-text-muted);font-weight:600;text-align:right;">Valor</th>
             </tr>
           </thead>
@@ -127,6 +127,13 @@
           </label>
 
           <label style="display:block;">
+            <span style="display:block;font-size:.72rem;color:var(--fs-text-muted);margin-bottom:6px;">Categoria</span>
+            <select id="fs-lancamento-categoria" class="fs-input" style="width:100%;">
+              <option value="">Carregando categorias...</option>
+            </select>
+          </label>
+
+          <label style="display:block;">
             <span style="display:block;font-size:.72rem;color:var(--fs-text-muted);margin-bottom:6px;">Valor (R$)</span>
             <input id="fs-lancamento-valor" required min="0.01" step="0.01" type="number" inputmode="decimal" class="fs-input" style="width:100%;" placeholder="0,00" />
           </label>
@@ -151,8 +158,8 @@
   </div>
 
   <script type="module">
-    import { iniciarPagina } from '../js/app.js?v=20261007-expenses1';
-    import { inicializarLancamentos, configurarFormularioLancamento } from '../js/modules/expenses.js?v=20261007-expenses1';
+    import { iniciarPagina } from '../js/app.js?v=20261007-expenses2';
+    import { inicializarLancamentos, configurarFormularioLancamento } from '../js/modules/expenses.js?v=20261007-expenses2';
 
     iniciarPagina('expenses', () => {
       if (window.lucide) window.lucide.createIcons();
