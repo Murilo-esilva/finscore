@@ -2,7 +2,6 @@ import {
   listarCategorias,
   criarCategoria,
   atualizarCategoria,
-  arquivarCategoria,
   excluirCategoria,
 } from "../../services/categoryService.js?v=20261007-category3";
 
