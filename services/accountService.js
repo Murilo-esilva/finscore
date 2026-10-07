@@ -2,6 +2,7 @@ import { exigirSupabase } from "../src/core/supabase/client.js";
 
 let contasCache = null;
 let contasCacheAt = 0;
+let contasPromise = null;
 const CONTAS_CACHE_TTL = 5000;
 
 export function limparCacheContas() {
@@ -11,23 +12,36 @@ export function limparCacheContas() {
 
 export async function listarContas({ force = false } = {}) {
   const agora = Date.now();
+
   if (!force && contasCache && agora - contasCacheAt < CONTAS_CACHE_TTL) {
     return contasCache;
   }
 
+  if (!force && contasPromise) {
+    return contasPromise;
+  }
+
   const client = exigirSupabase();
 
-  const { data, error } = await client.rpc("list_my_accounts_with_balance");
-  if (error) throw error;
+  contasPromise = (async () => {
+    const { data, error } = await client.rpc("list_my_accounts_with_balance");
+    if (error) throw error;
 
-  contasCache = (data || []).map((conta) => ({
-    ...conta,
-    opening_balance_cents: Number(conta.opening_balance_cents ?? 0),
-    balance_cents: Number(conta.balance_cents ?? 0),
-  }));
+    contasCache = (data || []).map((conta) => ({
+      ...conta,
+      opening_balance_cents: Number(conta.opening_balance_cents ?? 0),
+      balance_cents: Number(conta.balance_cents ?? 0),
+    }));
 
-  contasCacheAt = Date.now();
-  return contasCache;
+    contasCacheAt = Date.now();
+    return contasCache;
+  })();
+
+  try {
+    return await contasPromise;
+  } finally {
+    contasPromise = null;
+  }
 }
 
 export async function criarConta({
