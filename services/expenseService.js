@@ -16,7 +16,24 @@ export async function listarCategorias() {
 
   if (error) throw error;
 
-  return data || [];
+  const unicas = new Map();
+
+  for (const categoria of data || []) {
+    const chave = `${categoria.nature}:${String(categoria.name || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim()
+      .toLowerCase()}`;
+
+    const existente = unicas.get(chave);
+    if (!existente || (categoria.is_system && !existente.is_system)) {
+      unicas.set(chave, categoria);
+    }
+  }
+
+  return [...unicas.values()].sort(
+    (a, b) => String(a.name).localeCompare(String(b.name), "pt-BR")
+  );
 }
 
 export async function listarLancamentos({ limite = 100 } = {}) {
