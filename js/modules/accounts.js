@@ -51,27 +51,69 @@ export function configurarFormularioConta() {
   const modal = document.getElementById("fs-modal-conta");
   const form = document.getElementById("fs-form-conta");
   const erro = document.getElementById("fs-form-conta-erro");
-  const abrir = () => {
-    document.getElementById("fs-conta-data").value = new Date().toISOString().slice(0, 10);
+  const campoNome = document.getElementById("fs-conta-nome");
+  const campoData = document.getElementById("fs-conta-data");
+
+  if (!modal || !form || !erro || !campoNome || !campoData) {
+    console.error("Estrutura do modal de conta não encontrada.");
+    return;
+  }
+
+  const abrir = (event) => {
+    event?.preventDefault();
+    form.reset();
     erro.hidden = true;
+    campoData.value = new Date().toISOString().slice(0, 10);
     modal.hidden = false;
-    document.getElementById("fs-conta-nome").focus();
+    modal.style.display = "grid";
+    requestAnimationFrame(() => campoNome.focus());
   };
-  const fechar = () => { modal.hidden = true; form.reset(); };
-  document.querySelectorAll("#btn-nova-conta,#btn-nova-conta-2").forEach((botao) => botao.addEventListener("click", abrir));
-  document.querySelectorAll("#fs-fechar-conta,#fs-cancelar-conta").forEach((botao) => botao.addEventListener("click", fechar));
+
+  const fechar = (event) => {
+    event?.preventDefault();
+    modal.hidden = true;
+    modal.style.display = "none";
+    form.reset();
+    erro.hidden = true;
+  };
+
+  document
+    .querySelectorAll("#btn-nova-conta, #btn-nova-conta-2")
+    .forEach((botao) => botao.addEventListener("click", abrir));
+
+  document
+    .querySelectorAll("#fs-fechar-conta, #fs-cancelar-conta")
+    .forEach((botao) => botao.addEventListener("click", fechar));
+
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) fechar(event);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !modal.hidden) {
+      fechar(event);
+    }
+  });
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     erro.hidden = true;
+
     const botao = form.querySelector('button[type="submit"]');
+    if (!botao) return;
+
     botao.disabled = true;
+
     try {
       await criarConta({
-        name: document.getElementById("fs-conta-nome").value,
+        name: campoNome.value.trim(),
         account_type: document.getElementById("fs-conta-tipo").value,
-        opening_balance_cents: Math.round(Number(document.getElementById("fs-conta-saldo").value || 0) * 100),
-        opening_balance_on: document.getElementById("fs-conta-data").value,
+        opening_balance_cents: Math.round(
+          Number(document.getElementById("fs-conta-saldo").value || 0) * 100
+        ),
+        opening_balance_on: campoData.value,
       });
+
       fechar();
       await inicializarContas();
     } catch (error) {
