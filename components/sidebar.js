@@ -8,7 +8,9 @@
 
 const ITENS_NAV = [
   { pagina: "dashboard", rotulo: "Dashboard", icone: "layout-dashboard", href: "dashboard.html" },
-  { pagina: "expenses", rotulo: "Gastos", icone: "wallet", href: "expenses.html" },
+  { pagina: "accounts", rotulo: "Contas", icone: "landmark", href: "accounts.html" },
+  { pagina: "expenses", rotulo: "Lançamentos", icone: "arrow-left-right", href: "expenses.html" },
+  { pagina: "planning", rotulo: "Planejamento", icone: "calendar-range", href: "planning.html" },
   { pagina: "reports", rotulo: "Relatórios", icone: "bar-chart-3", href: "reports.html" },
   { pagina: "profile", rotulo: "Perfil", icone: "user-circle", href: "profile.html" },
   { pagina: "settings", rotulo: "Configurações", icone: "settings", href: "settings.html" },

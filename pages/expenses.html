@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FinScore — Gastos</title>
+  <title>FinScore — Lançamentos</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -22,40 +22,205 @@
     })();
   </script>
 </head>
-<body>
+<body data-finscore-build="2026-10-07-expenses-v5">
   <div id="sidebar-root"></div>
   <div id="navbar-root" class="lg:pl-[var(--fs-sidebar-w)]"></div>
 
   <main class="lg:pl-[var(--fs-sidebar-w)] p-5 lg:p-8" style="max-width:1400px; margin:0 auto;">
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;" class="fs-animate-in">
+    <section class="fs-animate-in" style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:24px;">
       <div>
-        <h1 class="fs-display" style="font-size:1.6rem; font-weight:700;">Gastos</h1>
-        <p style="color:var(--fs-text-muted); font-size:0.9rem; margin-top:4px;">
-          Registre, edite e acompanhe suas despesas.
+        <p style="font-size:.78rem;color:var(--fs-text-muted);margin-bottom:5px">MOVIMENTAÇÃO FINANCEIRA</p>
+        <h1 class="fs-display" style="font-size:1.6rem;font-weight:700;">Lançamentos</h1>
+        <p style="color:var(--fs-text-muted);font-size:.9rem;margin-top:4px;">
+          Registre o que entrou e saiu. Datas futuras entram no planejamento e não alteram o saldo atual.
         </p>
       </div>
-      <button id="fs-btn-novo-gasto" class="fs-btn fs-btn-primary" disabled title="Disponível na próxima etapa">
-        <i data-lucide="plus" class="w-4 h-4"></i> Novo gasto
+      <button id="fs-btn-novo-gasto" type="button" class="fs-btn fs-btn-primary" disabled>
+        <i data-lucide="plus" class="w-4 h-4"></i> Novo lançamento
       </button>
-    </div>
+    </section>
 
-    <div class="fs-surface fs-animate-in" style="padding:24px;">
-      <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:48px 16px; gap:12px;">
-        <div class="fs-empty-icon"><i data-lucide="wallet" class="w-6 h-6"></i></div>
-        <p style="font-weight:600;">O cadastro de gastos chega na próxima etapa</p>
-        <p style="font-size:0.85rem; color:var(--fs-text-muted); text-align:center; max-width:360px;">
-          Esta tela já está protegida por autenticação e pronta para receber o formulário de valor,
-          categoria, forma de pagamento, localização e comprovante.
-        </p>
+    <div id="fs-lancamentos-erro" hidden style="margin-bottom:20px;padding:12px 14px;border:1px solid var(--fs-border);border-radius:12px;background:var(--fs-surface-2);color:var(--fs-text-muted);font-size:.78rem;"></div>
+
+    <section class="grid grid-cols-1 sm:grid-cols-3 gap-4" style="margin-bottom:20px;">
+      <article class="fs-surface fs-animate-in" style="padding:18px;">
+        <p style="font-size:.75rem;color:var(--fs-text-muted)">Receitas carregadas</p>
+        <strong id="fs-total-receitas" class="fs-mono" style="display:block;font-size:1.2rem;margin-top:8px;">R$ 0,00</strong>
+      </article>
+      <article class="fs-surface fs-animate-in" style="padding:18px;">
+        <p style="font-size:.75rem;color:var(--fs-text-muted)">Despesas carregadas</p>
+        <strong id="fs-total-despesas" class="fs-mono" style="display:block;font-size:1.2rem;margin-top:8px;">R$ 0,00</strong>
+      </article>
+      <article class="fs-surface fs-animate-in" style="padding:18px;">
+        <p style="font-size:.75rem;color:var(--fs-text-muted)">Lançamentos exibidos</p>
+        <strong id="fs-total-lancamentos" class="fs-mono" style="display:block;font-size:1.2rem;margin-top:8px;">0</strong>
+      </article>
+    </section>
+
+    <section class="fs-surface fs-animate-in" style="padding:16px 18px;margin-bottom:16px;">
+  <div style="display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:10px;" class="sm:grid-cols-2 xl:grid-cols-5">
+    <input id="fs-filtro-busca" class="fs-input" placeholder="Buscar descrição..." />
+    <select id="fs-filtro-tipo" class="fs-input">
+      <option value="">Todos os tipos</option>
+      <option value="expense">Despesas</option>
+      <option value="income">Receitas</option>
+    </select>
+    <select id="fs-filtro-conta" class="fs-input">
+      <option value="">Todas as contas</option>
+    </select>
+    <select id="fs-filtro-categoria" class="fs-input">
+      <option value="">Todas as categorias</option>
+    </select>
+    <select id="fs-filtro-periodo" class="fs-input">
+      <option value="all">Todo o histórico</option>
+      <option value="month">Este mês</option>
+      <option value="3m">Últimos 3 meses</option>
+    </select>
+  </div>
+</section>
+
+<section class="fs-surface fs-animate-in" style="overflow:hidden;">
+      <div style="padding:18px 20px;border-bottom:1px solid var(--fs-border);display:flex;align-items:center;justify-content:space-between;gap:16px;">
+        <div>
+          <h2 style="font-size:1rem;font-weight:700;">Histórico</h2>
+          <p id="fs-lancamentos-contador" style="font-size:.72rem;color:var(--fs-text-muted);margin-top:3px;">0 lançamento(s)</p>
+        </div>
+        <span style="font-size:.72rem;color:var(--fs-text-muted);">Mais recentes primeiro</span>
       </div>
-    </div>
+
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="text-align:left;border-bottom:1px solid var(--fs-border);">
+              <th style="padding:12px 14px;font-size:.68rem;color:var(--fs-text-muted);font-weight:600;">Data</th>
+              <th style="padding:12px 14px;font-size:.68rem;color:var(--fs-text-muted);font-weight:600;">Descrição</th>
+              <th style="padding:12px 14px;font-size:.68rem;color:var(--fs-text-muted);font-weight:600;">Tipo / categoria</th>
+              <th style="padding:12px 14px;font-size:.68rem;color:var(--fs-text-muted);font-weight:600;text-align:right;">Valor</th>
+              <th style="padding:12px 14px;font-size:.68rem;color:var(--fs-text-muted);font-weight:600;text-align:right;">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="fs-lancamentos-lista"></tbody>
+        </table>
+      </div>
+
+      <div id="fs-lancamentos-vazio" style="display:flex;align-items:center;justify-content:center;min-height:240px;text-align:center;">
+        <div style="max-width:360px;padding:30px 16px;">
+          <div class="fs-empty-icon"><i data-lucide="receipt" class="w-6 h-6"></i></div>
+          <p style="font-weight:600;margin-top:12px;">Nenhum lançamento ainda</p>
+          <p style="font-size:.78rem;color:var(--fs-text-muted);margin-top:5px;">Cadastre sua primeira entrada ou saída para começar a movimentar o FinScore.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="fs-surface fs-animate-in" style="overflow:hidden;margin-top:20px;">
+      <div style="padding:18px 20px;border-bottom:1px solid var(--fs-border);display:flex;align-items:center;justify-content:space-between;gap:16px;">
+        <div>
+          <h2 style="font-size:1rem;font-weight:700;">Lançamentos futuros</h2>
+          <p id="fs-lancamentos-futuros-contador" style="font-size:.72rem;color:var(--fs-text-muted);margin-top:3px;">0 lançamento(s) futuro(s)</p>
+        </div>
+        <a href="planning.html" style="font-size:.78rem;color:var(--fs-indigo);font-weight:600;">Abrir planejamento</a>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="text-align:left;border-bottom:1px solid var(--fs-border);">
+              <th style="padding:12px 14px;font-size:.68rem;color:var(--fs-text-muted);font-weight:600;">Data</th>
+              <th style="padding:12px 14px;font-size:.68rem;color:var(--fs-text-muted);font-weight:600;">Descrição</th>
+              <th style="padding:12px 14px;font-size:.68rem;color:var(--fs-text-muted);font-weight:600;">Tipo / categoria</th>
+              <th style="padding:12px 14px;font-size:.68rem;color:var(--fs-text-muted);font-weight:600;text-align:right;">Valor</th>
+            </tr>
+          </thead>
+          <tbody id="fs-lancamentos-futuros-lista"></tbody>
+        </table>
+      </div>
+
+      <div id="fs-lancamentos-futuros-vazio" style="display:flex;align-items:center;justify-content:center;min-height:180px;text-align:center;">
+        <div style="max-width:360px;padding:28px 16px;">
+          <div class="fs-empty-icon"><i data-lucide="calendar-clock" class="w-6 h-6"></i></div>
+          <p style="font-weight:600;margin-top:12px;">Nenhum lançamento futuro</p>
+          <p style="font-size:.78rem;color:var(--fs-text-muted);margin-top:5px;">Ao escolher uma data depois de hoje no formulário, o FinScore cria automaticamente um compromisso futuro.</p>
+        </div>
+      </div>
+    </section>
   </main>
 
+  <div
+    id="fs-modal-lancamento"
+    aria-hidden="true"
+    onclick="if(event.target === this) document.getElementById('fs-fechar-lancamento')?.click()"
+    style="position:fixed;inset:0;z-index:80;display:none;place-items:center;background:rgba(15,23,42,.55);padding:20px;"
+  >
+    <div class="fs-surface" role="dialog" aria-modal="true" aria-labelledby="fs-titulo-lancamento" style="width:min(100%,520px);padding:24px;box-shadow:0 24px 70px rgba(0,0,0,.2);">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px;">
+        <div>
+          <h2 id="fs-titulo-lancamento" style="font-size:1.05rem;font-weight:700;">Novo lançamento</h2>
+          <p style="font-size:.75rem;color:var(--fs-text-muted);margin-top:4px;">Datas passadas e de hoje viram transações. Datas futuras viram planejamento.</p>
+        </div>
+        <button id="fs-fechar-lancamento" type="button" class="fs-btn fs-btn-secondary" style="padding:8px;" aria-label="Fechar">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <form id="fs-form-lancamento">
+        <div id="fs-form-lancamento-erro" hidden style="margin-bottom:14px;padding:10px 12px;border-radius:10px;background:var(--fs-surface-2);color:var(--fs-rose);font-size:.75rem;"></div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <label style="display:block;">
+            <span style="display:block;font-size:.72rem;color:var(--fs-text-muted);margin-bottom:6px;">Categoria <span style="color:var(--fs-rose)">*</span></span>
+            <select id="fs-lancamento-categoria" required class="fs-input" style="width:100%;display:block!important;visibility:visible!important;">
+              <option value="">Carregando categorias...</option>
+            </select>
+          </label>
+
+          <label style="display:block;">
+            <span style="display:block;font-size:.72rem;color:var(--fs-text-muted);margin-bottom:6px;">Tipo</span>
+            <select id="fs-lancamento-tipo" required class="fs-input" style="width:100%;">
+              <option value="expense">Despesa</option>
+              <option value="income">Receita</option>
+            </select>
+          </label>
+
+          <label style="display:block;">
+            <span style="display:block;font-size:.72rem;color:var(--fs-text-muted);margin-bottom:6px;">Conta</span>
+            <select id="fs-lancamento-conta" required class="fs-input" style="width:100%;">
+              <option value="">Carregando contas...</option>
+            </select>
+          </label>
+
+
+          <label style="display:block;">
+            <span style="display:block;font-size:.72rem;color:var(--fs-text-muted);margin-bottom:6px;">Valor (R$)</span>
+            <input id="fs-lancamento-valor" required min="0.01" step="0.01" type="number" inputmode="decimal" class="fs-input" style="width:100%;" placeholder="0,00" />
+          </label>
+
+          <label style="display:block;">
+            <span style="display:block;font-size:.72rem;color:var(--fs-text-muted);margin-bottom:6px;">Data</span>
+            <input id="fs-lancamento-data" required type="date" class="fs-input" style="width:100%;" />
+          </label>
+
+          <label style="display:block;" class="sm:col-span-2">
+            <span style="display:block;font-size:.72rem;color:var(--fs-text-muted);margin-bottom:6px;">Descrição</span>
+            <input id="fs-lancamento-descricao" required maxlength="180" type="text" class="fs-input" style="width:100%;" placeholder="Ex.: Mercado, salário, aluguel..." />
+          </label>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px;">
+          <button id="fs-cancelar-lancamento" type="button" class="fs-btn fs-btn-secondary">Cancelar</button>
+          <button id="fs-btn-salvar-lancamento" type="submit" class="fs-btn fs-btn-primary">Salvar lançamento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script type="module">
-    import { iniciarPagina } from '../js/app.js';
+    import { iniciarPagina } from '../js/app.js?v=20261007-expenses5';
+    import { inicializarLancamentos, configurarFormularioLancamento } from '../js/modules/expenses.js?v=20261007-expenses5';
 
     iniciarPagina('expenses', () => {
       if (window.lucide) window.lucide.createIcons();
+      configurarFormularioLancamento();
+      inicializarLancamentos();
     });
   </script>
 </body>
