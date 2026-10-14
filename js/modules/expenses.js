@@ -88,7 +88,7 @@ function atualizarCategoriasPorTipo() {
     (categoria) => categoria.nature === tipo
   );
 
-  select.required = tipo === "expense";
+  select.required = true;
   select.innerHTML = categorias.length
     ? '<option value="">Selecione uma categoria</option>' +
       categorias.map((categoria) =>
@@ -381,7 +381,7 @@ export function configurarFormularioLancamento() {
       const hoje = dataHojeISO();
 
       if (!(valor > 0)) throw new Error("Informe um valor maior que zero.");
-      if (tipo === "expense" && !categoria) throw new Error("Selecione uma categoria para a despesa.");
+      if (!categoria) throw new Error("Selecione uma categoria para a receita ou despesa.");
       if (!data) throw new Error("Informe a data.");
       if (!document.getElementById("fs-lancamento-conta").value) throw new Error("Selecione uma conta.");
       if (!descricao) throw new Error("Informe uma descrição.");
