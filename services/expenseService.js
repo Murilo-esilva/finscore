@@ -91,6 +91,8 @@ export async function criarLancamento({
 }) {
   const client = exigirSupabase();
 
+  if (!category_id) throw new Error("Selecione uma categoria para a receita ou despesa.");
+
   const kind = type === "income" ? "income" : "expense";
   const direction = type === "income" ? "credit" : "debit";
 
